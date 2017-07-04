@@ -1,0 +1,26 @@
+language: python
+python:
+  - 3.4
+  - 3.5
+  - 3.6
+env:
+  - DJANGO_VERSION=1.8.18
+  - DJANGO_VERSION=1.9.13
+  - DJANGO_VERSION=1.10.7
+  - DJANGO_VERSION=1.11.1
+  - DJANGO_VERSION=1.11.2
+  - DJANGO_VERSION=1.11.3
+# https://docs.djangoproject.com/en/1.9/faq/install/#what-python-version-can-i-use-with-django
+addons:
+  apt_packages:
+    - pandoc
+before_install:
+    - ./pypi_packager.sh
+install:
+  - pip install -q django==$DJANGO_VERSION
+  - pip install -e .
+  - pip install -q coveralls
+script:
+  - coverage run --source=celery_growthmonitor celery_growthmonitor/tests/__main__.py
+after_success:
+  - coveralls
