@@ -1,7 +1,7 @@
 from celery import shared_task
 from celery.canvas import chain
 
-from .metatask import AMetaTask
+from celery_growthmonitor.models import MetaTask
 
 
 def build_chain(metatask, *tasks):
@@ -10,7 +10,7 @@ def build_chain(metatask, *tasks):
 
     Parameters
     ----------
-    metatask : AMetaTask
+    metatask : MetaTask
     tasks : genrepa.celery.metatask.AMetaTask
 
     Returns
@@ -19,12 +19,12 @@ def build_chain(metatask, *tasks):
 
     """
     try:
-        chain_ = (
+        chain_ = eval("""(
             start.s(metatask),
             *tasks,
             stop.s(),
             remove_old_jobs.s(),
-        )
+        )""")
     except SyntaxError:
         # Python < 3.5
         chain_ = (
@@ -48,11 +48,11 @@ def start(metatask):
 
     Parameters
     ----------
-    metatask : AMetaTask
+    metatask : MetaTask
 
     Returns
     -------
-    AMetaTask
+    MetaTask
     """
     metatask.start()
     return metatask
@@ -65,14 +65,15 @@ def stop(metatask):
 
     Parameters
     ----------
-    metatask : AMetaTask
+    metatask : MetaTask
 
     Returns
     -------
-    AMetaTask
+    MetaTask
 
     """
     metatask.stop()
+    # TODO: return args (and kwargs) if any
     return metatask
 
 
@@ -86,3 +87,5 @@ def remove_old_jobs(metatask):
     candidates = metatask.job.__class__.objects.filter(closure__lt=datetime.now())
     for candidate in candidates:
         candidate.delete()
+    # TODO: return args (and kwargs) if any
+    return metatask

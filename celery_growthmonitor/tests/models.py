@@ -1,6 +1,5 @@
-from ..models import AJob
+from celery_growthmonitor.models import AJob
 
 
 class TestJob(AJob):
-    class Meta:
-        app_label= 'TestApp'
+    pass

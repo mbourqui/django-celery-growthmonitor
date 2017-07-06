@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import os
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -18,11 +20,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',
+
+    'celery_growthmonitor',
+
+    'celery_growthmonitor.tests',
 ]
 
+# DATABASE CONFIGURATION
+# ------------------------------------------------------------------------------
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3'
+        'ENGINE': 'django.db.backends.sqlite3',
     },
 }
 
@@ -65,6 +74,8 @@ SITE_ID = 1
 
 USE_I18N = True
 
+USE_TZ = True
+
 # TEMPLATE_DIRS = [os.path.join(os.path.dirname(__file__), 'templates')]
 TEMPLATES = [
     {
@@ -98,3 +109,11 @@ TEMPLATES = [
         },
     },
 ]
+
+# CELERY
+# ------------------------------------------------------------------------------
+INSTALLED_APPS += ['celery_growthmonitor.tests.taskapp.celery.CeleryConfig', ]
+CELERY_ALWAYS_EAGER = True
+CELERY_ACCEPT_CONTENT = ['pickle']
+CELERY_TASK_SERIALIZER = 'pickle'
+CELERY_RESULT_SERIALIZER = 'pickle'
