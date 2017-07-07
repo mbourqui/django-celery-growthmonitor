@@ -1,40 +1,4 @@
 from celery import shared_task
-from celery.canvas import chain
-
-from celery_growthmonitor.models import MetaTask
-
-
-def build_chain(metatask, *tasks):
-    """
-    Build a chain of tasks, adding monitoring and maintenance tasks at the beginning and end of the chain
-
-    Parameters
-    ----------
-    metatask : MetaTask
-    tasks : genrepa.celery.metatask.AMetaTask
-
-    Returns
-    -------
-    celery.canvas.chain
-
-    """
-    try:
-        chain_ = eval("""(
-            start.s(metatask),
-            *tasks,
-            stop.s(),
-            remove_old_jobs.s(),
-        )""")
-    except SyntaxError:
-        # Python < 3.5
-        chain_ = (
-            start.s(metatask),)
-        chain_ += tuple([task for task in tasks])
-        chain_ += (
-            stop.s(),
-            remove_old_jobs.s(),
-        )
-    return chain(*chain_)
 
 
 # ==================================================

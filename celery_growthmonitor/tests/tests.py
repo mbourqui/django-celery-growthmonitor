@@ -4,10 +4,10 @@ import warnings
 
 from django.test import TestCase
 
-from celery_growthmonitor.canvas import build_chain
 from celery_growthmonitor.models import MetaTask
 from celery_growthmonitor.tests.models import TestJob
 from celery_growthmonitor.tests.tasks import identity_task
+from celery_growthmonitor.workflows import chain
 
 warnings.simplefilter("always")
 
@@ -17,7 +17,7 @@ class Test(TestCase):
         test_job = TestJob()
         test_job.save()
         mt = MetaTask(test_job)
-        task = build_chain(mt,)
+        task = chain(mt, )
         result = task.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
@@ -27,7 +27,7 @@ class Test(TestCase):
         test_job = TestJob()
         test_job.save()
         mt = MetaTask(test_job)
-        task = build_chain(mt, identity_task.s())
+        task = chain(mt, identity_task.s())
         result = task.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')

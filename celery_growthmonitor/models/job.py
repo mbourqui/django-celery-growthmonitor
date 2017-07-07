@@ -1,33 +1,8 @@
-import logging
-from datetime import datetime
-from enum import unique
+import os
 
 from autoslug import AutoSlugField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from echoices.enums import EChoice
-from echoices.fields import make_echoicefield
-
-logger = logging.getLogger(__name__)
-
-
-@unique
-class EStates(EChoice):
-    # Creation codes
-    CREATED = (0, 'Created')
-    # Submission codes
-    SUBMITTED = (100, 'Submitted')
-    # Computation codes
-    RUNNING = (200, 'Running')
-    # Completion codes
-    COMPLETED = (300, 'Completed')
-
-
-@unique
-class EStatuses(EChoice):
-    ACTIVE = (0, 'Active')
-    SUCCESS = (10, 'Success')
-    FAILURE = (20, 'Failure')
 
 
 def root_job(instance):
@@ -44,7 +19,6 @@ def root_job(instance):
     str
         Path to the root folder for that job
     """
-    import os
     return os.path.join(instance.__class__.__name__.lower(), str(instance.id))
 
 
@@ -64,8 +38,45 @@ def job_root(instance, filename):
     str
         Path to filename which is unique for a job
     """
-    import os
     return os.path.join(root_job(instance), filename)
+
+
+def job_data(instance, filename):
+    """
+    Return the path of `filename` stored in a subfolder of the root folder of his job `instance`.
+
+    Parameters
+    ----------
+    instance : AJob
+        The model instance associated
+    filename : str
+        Original filename
+
+    Returns
+    --------
+    str
+        Path to filename which is unique for a job
+    """
+    return os.path.join(root_job(instance), 'data', filename)
+
+
+def job_results(instance, filename):
+    """
+    Return the path of `filename` stored in a subfolder of the root folder of his job `instance`.
+
+    Parameters
+    ----------
+    instance : AJob
+        The model instance associated
+    filename : str
+        Original filename
+
+    Returns
+    --------
+    str
+        Path to filename which is unique for a job
+    """
+    return os.path.join(root_job(instance), 'results', filename)
 
 
 class AJob(models.Model):
@@ -74,9 +85,29 @@ class AJob(models.Model):
     --------
     http://stackoverflow.com/questions/16655097/django-abstract-models-versus-regular-inheritance#16838663
     """
+    from enum import unique
+    from echoices.enums import EChoice
+    from echoices.fields import make_echoicefield
 
     class Meta:
         abstract = True
+
+    @unique
+    class EStates(EChoice):
+        # Creation codes
+        CREATED = (0, 'Created')
+        # Submission codes
+        SUBMITTED = (100, 'Submitted')
+        # Computation codes
+        RUNNING = (200, 'Running')
+        # Completion codes
+        COMPLETED = (300, 'Completed')
+
+    @unique
+    class EStatuses(EChoice):
+        ACTIVE = (0, 'Active')
+        SUCCESS = (10, 'Success')
+        FAILURE = (20, 'Failure')
 
     SLUG_MAX_LENGTH = 32
     SLUG_RND_LENGTH = 6
@@ -110,77 +141,6 @@ class AJob(models.Model):
         super(AJob, self).save(*args, **kwargs)  # Call the "real" save() method.
         if created:
             # Set timeout
-            from . import settings as app_settings
+            from .. import settings as app_settings
             from pytz import timezone
             self.closure = (self.timestamp + app_settings.TTL).astimezone(timezone(app_settings.settings.TIME_ZONE))
-
-
-class MetaTask:
-    """
-    Parameters
-    ----------
-    job : AJob
-    """
-
-    def __init__(self, job):
-        self.job = job
-        self.started = None
-        self.completed = None
-        self.error = None
-
-    def progress(self, new_state):
-        """
-        Signal a change in the pipeline
-
-        Parameters
-        ----------
-        new_state : AJob.EStates
-
-        Returns
-        -------
-        AJob.EStates
-            The previous state
-
-        """
-        old_state = self.job.state
-        self.job.state = new_state.value
-        self.job.save()
-        return old_state
-
-    def start(self):
-        """
-        To be called when the job is to be started
-        """
-        self.progress(EStates.RUNNING)
-        self.started = datetime.now()
-        logger.debug("Starting job {} at {}".format(self.job.id, self.started))
-
-    def stop(self):
-        """
-        To be called when the job is completed
-
-        Returns
-        -------
-        datetime.timedelta
-            Duration of the job
-
-        """
-        self.completed = datetime.now()
-        self.job.status = EStatuses.FAILURE.value if self.error else EStatuses.SUCCESS.value
-        self.progress(EStates.COMPLETED)  # This will also save the job
-        logger.debug("Job {} terminated in {}s with status {}".format(self.job.id, self.duration,
-                                                                      EStatuses.from_value(self.job.status).label))
-        return self.duration
-
-    def failed(self, exception):
-        self.progress(EStates.ERROR)
-        self.error = exception
-        # TODO: http://stackoverflow.com/questions/4564559/
-        logger.exception(exception)
-
-    @property
-    def duration(self):
-        if not self.job.duration:
-            self.job.duration = self.completed - self.started
-            self.job.save()
-        return self.job.duration

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-django-celery-growthmonitor, a Django helper to monitor jobs running Celery tasks.
+Django Celery GrowthMonitor, a Django helper to monitor jobs running Celery tasks.
 Copyright (C) 2017  Marc BOURQUI
 
 This program is free software: you can redistribute it and/or modify
