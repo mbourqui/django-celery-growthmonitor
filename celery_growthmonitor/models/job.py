@@ -144,4 +144,4 @@ class AJob(models.Model):
             # Set timeout
             from .. import settings as app_settings
             self.closure = self.timestamp + app_settings.TTL
-        super(AJob, self).save(*args, **kwargs)  # Call the "real" save() method.
+            super(AJob, self).save(*args, **kwargs)  # Write closure to DB
