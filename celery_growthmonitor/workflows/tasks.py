@@ -47,8 +47,8 @@ def stop(metatask):
 
 @shared_task
 def remove_old_jobs(metatask):
-    from datetime import datetime
-    candidates = metatask.job.__class__.objects.filter(closure__lt=datetime.now())
+    from django.utils.timezone import now
+    candidates = metatask.job.__class__.objects.filter(closure__lt=now())
     for candidate in candidates:
         candidate.delete()
     # TODO: return args (and kwargs) if any

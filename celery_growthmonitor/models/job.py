@@ -125,16 +125,17 @@ class AJob(models.Model):
         return slug
 
     timestamp = models.DateTimeField(verbose_name=_("Job creation timestamp"), auto_now_add=True)
-    identifier = models.CharField(max_length=64, blank=True,
-                                  help_text=_("Human readable identifier, as provided by the submitter"), )
+    # TODO: validate identifier over allowance for slug or [a-zA-Z0-9_]
+    identifier = models.CharField(max_length=64, blank=True, db_index=True,
+                                  help_text=_("Human readable identifier, as provided by the submitter"))
     state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
     duration = models.DurationField(editable=False, null=True)
     slug = AutoSlugField(max_length=SLUG_MAX_LENGTH, unique=True, editable=True, populate_from=slug_default,
-                         help_text=_("Human readable url, must be unique, "
-                                     "a default one will be generated if none is given"))
-    closure = models.DateTimeField(blank=True, null=True, help_text=_(
-        "Timestamp of removal, will be set automatically on creation if not given"), )  # Default is set on save()
+                         db_index=True, help_text=_("Human readable url, must be unique, "
+                                                    "a default one will be generated if none is given"))
+    closure = models.DateTimeField(blank=True, null=True, db_index=True, help_text=_(
+        "Timestamp of removal, will be set automatically on creation if not given"))  # Default is set on save()
 
     def save(self, *args, **kwargs):
         created = not self.id
@@ -142,5 +143,5 @@ class AJob(models.Model):
         if created:
             # Set timeout
             from .. import settings as app_settings
-            from pytz import timezone
-            self.closure = (self.timestamp + app_settings.TTL).astimezone(timezone(app_settings.settings.TIME_ZONE))
+            self.closure = self.timestamp + app_settings.TTL
+        super(AJob, self).save(*args, **kwargs)  # Call the "real" save() method.
