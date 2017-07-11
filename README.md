@@ -6,7 +6,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/mbourqui/django-celery-growthmonitor/badge.svg?branch=master)](https://coveralls.io/github/mbourqui/django-celery-growthmonitor?branch=master)
 
 
-# Django-EChoices, choices for Django model fields as enumeration
+# Django-Celery-GrowthMonitor
+
+A Django helper to monitor jobs running Celery tasks
 
 
 ## Features
