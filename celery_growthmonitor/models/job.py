@@ -7,6 +7,17 @@ from django.utils.translation import ugettext_lazy as _
 from .. import settings
 
 
+def _user_path(attribute_or_prefix, filename=''):
+    if attribute_or_prefix:
+        if callable(attribute_or_prefix):
+            # It's an attribute
+            return attribute_or_prefix(filename)
+        else:
+            # It's a prefix
+            return os.path.join(attribute_or_prefix, filename)
+    return None
+
+
 def root_job(instance):
     """
     Return the root path in the filesystem for the job `instance` folder.
@@ -21,6 +32,11 @@ def root_job(instance):
     str
         Path to the root folder for that job
     """
+    if instance.job_root:
+        if callable(instance.job_root):
+            return instance.job_root()
+        else:
+            return os.path.join(str(instance.job_root), str(instance.id))
     return os.path.join(settings.APP_ROOT, instance.__class__.__name__.lower(), str(instance.id))
 
 
@@ -43,7 +59,7 @@ def job_root(instance, filename=''):
     return os.path.join(root_job(instance), filename)
 
 
-def job_data(instance, filename):
+def job_data(instance, filename=''):
     """
     Return the path of `filename` stored in a subfolder of the root folder of his job `instance`.
 
@@ -59,11 +75,13 @@ def job_data(instance, filename):
     str
         Path to filename which is unique for a job
     """
-    return os.path.join(job_root(instance.job) if isinstance(instance, ADataFile) else root_job(instance),
-                        'data', filename)
+
+    head = root_job(instance.job) if isinstance(instance, ADataFile) else root_job(instance)
+    tail = _user_path(instance.upload_to_data, filename) or os.path.join('data', filename)
+    return os.path.join(head, tail)
 
 
-def job_results(instance, filename):
+def job_results(instance, filename=''):
     """
     Return the path of `filename` stored in a subfolder of the root folder of his job `instance`.
 
@@ -79,7 +97,8 @@ def job_results(instance, filename):
     str
         Path to filename which is unique for a job
     """
-    return os.path.join(job_root(instance), 'results', filename)
+    tail = _user_path(instance.upload_to_results, filename) or os.path.join('results', filename)
+    return os.path.join(root_job(instance), tail)
 
 
 class AJob(models.Model):
@@ -115,7 +134,8 @@ class AJob(models.Model):
     SLUG_MAX_LENGTH = 32
     SLUG_RND_LENGTH = 6
 
-    upload_to_results = job_results
+    job_root = None
+    upload_to_results = None
 
     def slug_default(self):
         if self.identifier:
@@ -147,18 +167,17 @@ class AJob(models.Model):
         super(AJob, self).save(*args, **kwargs)  # Call the "real" save() method.
         if created:
             # Set timeout
-            from .. import settings as app_settings
-            self.closure = self.timestamp + app_settings.TTL
+            self.closure = self.timestamp + settings.TTL
             super(AJob, self).save(*args, **kwargs)  # Write closure to DB
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
-            os.makedirs(self.upload_to_results(''), exist_ok=False)
+            os.makedirs(os.path.join(settings.django_settings.MEDIA_ROOT, job_results(self)), exist_ok=False)
 
 
 class ADataFile(models.Model):
     class Meta:
         abstract = True
 
-    upload_to_data = job_data
+    upload_to_data = None
 
-    job = models.ForeignKey(AJob, on_delete=models.CASCADE)
-    data = models.FileField(upload_to=upload_to_data)
+    job = models.ForeignKey(AJob, on_delete=models.CASCADE)  # placeholder, must be overridden by concrete class
+    data = models.FileField(upload_to=job_data, max_length=256)
