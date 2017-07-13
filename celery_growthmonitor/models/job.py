@@ -4,6 +4,8 @@ from autoslug import AutoSlugField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from .. import settings
+
 
 def root_job(instance):
     """
@@ -19,10 +21,10 @@ def root_job(instance):
     str
         Path to the root folder for that job
     """
-    return os.path.join(instance.__class__.__name__.lower(), str(instance.id))
+    return os.path.join(settings.APP_ROOT, instance.__class__.__name__.lower(), str(instance.id))
 
 
-def job_root(instance, filename):
+def job_root(instance, filename=''):
     """
     Return the path of `filename` stored at the root folder of his job `instance`.
 
@@ -47,7 +49,7 @@ def job_data(instance, filename):
 
     Parameters
     ----------
-    instance : AJob
+    instance : AJob or ADataFile
         The model instance associated
     filename : str
         Original filename
@@ -57,7 +59,8 @@ def job_data(instance, filename):
     str
         Path to filename which is unique for a job
     """
-    return os.path.join(root_job(instance), 'data', filename)
+    return os.path.join(job_root(instance.job) if isinstance(instance, ADataFile) else root_job(instance),
+                        'data', filename)
 
 
 def job_results(instance, filename):
@@ -76,7 +79,7 @@ def job_results(instance, filename):
     str
         Path to filename which is unique for a job
     """
-    return os.path.join(root_job(instance), 'results', filename)
+    return os.path.join(job_root(instance), 'results', filename)
 
 
 class AJob(models.Model):
@@ -112,6 +115,8 @@ class AJob(models.Model):
     SLUG_MAX_LENGTH = 32
     SLUG_RND_LENGTH = 6
 
+    upload_to_results = job_results
+
     def slug_default(self):
         if self.identifier:
             slug = self.identifier[:min(len(self.identifier), self.SLUG_RND_LENGTH)]
@@ -145,3 +150,15 @@ class AJob(models.Model):
             from .. import settings as app_settings
             self.closure = self.timestamp + app_settings.TTL
             super(AJob, self).save(*args, **kwargs)  # Write closure to DB
+            # Ensure the destination folder exists (may create some issues else, depending on application usage)
+            os.makedirs(self.upload_to_results(''), exist_ok=False)
+
+
+class ADataFile(models.Model):
+    class Meta:
+        abstract = True
+
+    upload_to_data = job_data
+
+    job = models.ForeignKey(AJob, on_delete=models.CASCADE)
+    data = models.FileField(upload_to=upload_to_data)

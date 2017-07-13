@@ -10,3 +10,5 @@ TTL = getattr(settings, '{}_TTL'.format(CeleryGrowthMonitorConfig.name.upper()),
 """
 Time to live. After that time, jobs should be dropped from file system.
 """
+
+APP_ROOT = getattr(settings, '{}_APP_ROOT'.format(CeleryGrowthMonitorConfig.name.upper()), '')
