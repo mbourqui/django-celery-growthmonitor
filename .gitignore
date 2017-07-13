@@ -37,6 +37,8 @@ npm-debug.log*
 .tox
 nosetests.xml
 htmlcov
+# Tests media
+celery_growthmonitor/tests/media/
 
 # Translations
 *.mo

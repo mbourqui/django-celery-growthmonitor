@@ -13,6 +13,13 @@ warnings.simplefilter("always")
 
 
 class Test(TestCase):
+    def tearDown(self):
+        from django.conf import settings
+        import os
+        import shutil
+        # Database is not kept but files would be otherwise
+        shutil.rmtree(os.path.join(settings.CELERY_GROWTHMONITOR_APP_ROOT, ))
+
     def test_no_task(self):
         test_job = TestJob()
         test_job.save()
