@@ -182,7 +182,7 @@ class ADataFile(models.Model):
 
     upload_to_data = None
 
-    if StrictVersion('1.9.0') <= StrictVersion(django_version) < StrictVersion('1.10.0'):
+    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
         job = None  # Just a placeholder, Django 1.9 does not support overriding Fields
         data = None  # Just a placeholder, Django 1.9 does not support overriding Fields
     else:
