@@ -1,5 +1,5 @@
 [![Python](https://img.shields.io/badge/Python-2.7,3.4,3.5,3.6-blue.svg?style=flat-square)](/)
-[![Django](https://img.shields.io/badge/Django-1.9,1.10,1.11-blue.svg?style=flat-square)](/)
+[![Django](https://img.shields.io/badge/Django-1.8,1.9,1.10,1.11-blue.svg?style=flat-square)](/)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/django_celery_growthmonitor.svg?style=flat-square)](https://pypi.org/project/django-celery-growthmonitor)
 [![Build Status](https://travis-ci.org/mbourqui/django-celery-growthmonitor.svg?branch=master)](https://travis-ci.org/mbourqui/django-celery-growthmonitor)
