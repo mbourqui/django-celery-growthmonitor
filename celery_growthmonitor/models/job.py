@@ -174,10 +174,17 @@ class AJob(models.Model):
 
 
 class ADataFile(models.Model):
+    from django import get_version as django_version
+    from distutils.version import StrictVersion
+
     class Meta:
         abstract = True
 
     upload_to_data = None
 
-    job = models.ForeignKey(AJob, on_delete=models.CASCADE)  # placeholder, must be overridden by concrete class
-    data = models.FileField(upload_to=job_data, max_length=256)
+    if StrictVersion('1.9.0') <= StrictVersion(django_version) < StrictVersion('1.10.0'):
+        job = None  # Just a placeholder, Django 1.9 does not support overriding Fields
+        data = None  # Just a placeholder, Django 1.9 does not support overriding Fields
+    else:
+        job = models.ForeignKey(AJob, on_delete=models.CASCADE)  # placeholder, must be overridden by concrete class
+        data = models.FileField(upload_to=job_data, max_length=256)
