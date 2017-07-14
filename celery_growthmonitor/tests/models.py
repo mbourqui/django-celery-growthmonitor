@@ -1,6 +1,6 @@
 from django.db import models
 
-from celery_growthmonitor.models import AJob, ADataFile
+from celery_growthmonitor.models import AJob, ADataFile, job_data
 
 
 class TestJob(AJob):
@@ -38,11 +38,21 @@ class MyRootResultsFuncTestJob(AJob):
     upload_to_results = my_job_results
 
 
-class TestFile(ADataFile):
+class ACompatDataFile(ADataFile):
+    class Meta:
+        abstract = True
+
+    from django import get_version as django_version
+    from distutils.version import StrictVersion
+    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+        data = models.FileField(upload_to=job_data, max_length=256)
+
+
+class TestFile(ACompatDataFile):
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
 
 
-class MyDataStrTestFile(ADataFile):
+class MyDataStrTestFile(ACompatDataFile):
     upload_to_data = 'my_data_str'
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
 
@@ -52,15 +62,15 @@ def my_job_data(instance, filename):
     return os.path.join('my_data_func', filename)
 
 
-class MyDataFuncTestFile(ADataFile):
+class MyDataFuncTestFile(ACompatDataFile):
     upload_to_data = my_job_data
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
 
 
-class MyRootFuncTestFile(ADataFile):
+class MyRootFuncTestFile(ACompatDataFile):
     job = models.ForeignKey(MyRootFuncTestJob, on_delete=models.CASCADE)
 
 
-class MyRootDataFuncTestFile(ADataFile):
+class MyRootDataFuncTestFile(ACompatDataFile):
     upload_to_data = my_job_data
     job = models.ForeignKey(MyRootFuncTestJob, on_delete=models.CASCADE)

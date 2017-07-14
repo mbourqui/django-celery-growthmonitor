@@ -182,9 +182,10 @@ class ADataFile(models.Model):
 
     upload_to_data = None
 
-    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
-        job = None  # Just a placeholder, Django 1.9 does not support overriding Fields
-        data = None  # Just a placeholder, Django 1.9 does not support overriding Fields
+    if StrictVersion(django_version()) < StrictVersion('1.10.0'):
+        # SEE: https://docs.djangoproject.com/en/1.10/topics/db/models/#field-name-hiding-is-not-permitted
+        job = None  # Just a placeholder, Django < 1.10 does not support overriding Fields of abstract models
+        data = None  # Just a placeholder, Django  < 1.10 does not support overriding Fields of abstract models
     else:
         job = models.ForeignKey(AJob, on_delete=models.CASCADE)  # placeholder, must be overridden by concrete class
         data = models.FileField(upload_to=job_data, max_length=256)
