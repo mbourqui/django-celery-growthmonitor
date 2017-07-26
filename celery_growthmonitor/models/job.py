@@ -165,7 +165,7 @@ class AJob(models.Model):
     closure = models.DateTimeField(blank=True, null=True, db_index=True, help_text=_(
         "Timestamp of removal, will be set automatically on creation if not given"))  # Default is set on save()
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, results_exist_ok=False, **kwargs):
         created = not self.id
         super(AJob, self).save(*args, **kwargs)  # Call the "real" save() method.
         if created:
@@ -173,7 +173,7 @@ class AJob(models.Model):
             self.closure = self.timestamp + settings.TTL
             super(AJob, self).save(*args, **kwargs)  # Write closure to DB
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
-            os.makedirs(os.path.join(settings.django_settings.MEDIA_ROOT, job_results(self)), exist_ok=False)
+            os.makedirs(os.path.join(settings.django_settings.MEDIA_ROOT, job_results(self)), exist_ok=results_exist_ok)
 
 
 class ADataFile(models.Model):
@@ -184,6 +184,9 @@ class ADataFile(models.Model):
         abstract = True
 
     upload_to_data = None
+
+    job = None  # Just a placeholder for IDEs
+    data = None  # Just a placeholder for IDEs
 
     if StrictVersion(django_version()) < StrictVersion('1.10.0'):
         # SEE: https://docs.djangoproject.com/en/1.10/topics/db/models/#field-name-hiding-is-not-permitted
