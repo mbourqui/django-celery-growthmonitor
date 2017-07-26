@@ -64,6 +64,12 @@ class JobTestCase(TestCase):
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
+        expected_path = os.path.join(settings.APP_ROOT, 'jobresultsfunctestjob', '1', 'results')
+        self.assertFalse(os.path.isdir(expected_path))
+        test_job = models.JobResultsFuncTestJob()
+        test_job.save()
+        self.assertTrue(os.path.isdir(expected_path))
+        #
         expected_path = os.path.join(settings.django_settings.MEDIA_ROOT, 'my_root_func', '1', 'my_results_func')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootResultsFuncTestJob()
@@ -75,9 +81,17 @@ class JobTestCase(TestCase):
         # Base case
         test_job = models.TestJob()
         test_job.save()
+        test_job_two = models.TestJobTwo()
+        test_job_two.save()
         expected_path = os.path.join(settings.APP_ROOT, 'testjob', '1', 'data', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.TestFile(job=test_job, data=test_file)
+        annotation.save()
+        self.assertTrue(os.path.exists(expected_path))
+        #
+        expected_path = os.path.join(settings.APP_ROOT, 'testjobtwo', '1', 'data', 'foobar.txt')
+        self.assertFalse(os.path.exists(expected_path))
+        annotation = models.JobDataFuncTestFile(job=test_job_two, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
         #

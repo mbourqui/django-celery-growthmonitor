@@ -10,8 +10,11 @@ from .. import settings
 def _user_path(attribute_or_prefix, filename=''):
     if attribute_or_prefix:
         if callable(attribute_or_prefix):
-            # It's an attribute
-            return attribute_or_prefix(filename)
+            # It's a callable attribute
+            co_code = attribute_or_prefix.__code__.co_code
+            if co_code != job_data.__code__.co_code and co_code != job_results.__code__.co_code:
+                # Prevent infinite recursion if using job_data(...) or job_results(...)
+                return attribute_or_prefix(filename)
         else:
             # It's a prefix
             return os.path.join(attribute_or_prefix, filename)

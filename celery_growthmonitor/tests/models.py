@@ -1,9 +1,12 @@
 from django.db import models
 
-from celery_growthmonitor.models import AJob, ADataFile
+from celery_growthmonitor.models import AJob, ADataFile, job_data, job_results
 
 
 class TestJob(AJob):
+    pass
+
+class TestJobTwo(AJob):
     pass
 
 
@@ -33,6 +36,10 @@ class MyResultsFuncTestJob(AJob):
     upload_to_results = my_job_results
 
 
+class JobResultsFuncTestJob(AJob):
+    upload_to_results = job_results
+
+
 class MyRootResultsFuncTestJob(AJob):
     job_root = my_job_root
     upload_to_results = my_job_results
@@ -55,6 +62,11 @@ def my_job_data(instance, filename):
 class MyDataFuncTestFile(ADataFile):
     upload_to_data = my_job_data
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
+
+
+class JobDataFuncTestFile(ADataFile):
+    upload_to_data = job_data
+    job = models.ForeignKey(TestJobTwo, on_delete=models.CASCADE)
 
 
 class MyRootFuncTestFile(ADataFile):
