@@ -6,6 +6,7 @@ from celery_growthmonitor.models import AJob, ADataFile, job_data, job_results
 class TestJob(AJob):
     pass
 
+
 class TestJobTwo(AJob):
     pass
 
@@ -74,7 +75,7 @@ class MyDataFuncTestFile(ACompatDataFile):
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
 
 
-class JobDataFuncTestFile(ADataFile):
+class JobDataFuncTestFile(ACompatDataFile):
     upload_to_data = job_data
     job = models.ForeignKey(TestJobTwo, on_delete=models.CASCADE)
 
