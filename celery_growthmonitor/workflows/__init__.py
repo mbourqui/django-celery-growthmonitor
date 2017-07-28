@@ -2,4 +2,5 @@
 # -*- coding: utf-8 -*-
 
 from .canvas import chain
+from .tasks import ReturnTuple, extract_metatask
 from .tasks import start, stop, remove_old_jobs

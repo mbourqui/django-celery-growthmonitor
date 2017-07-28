@@ -9,12 +9,12 @@ def _compat_return(metatask, *args):
     return ReturnTuple(metatask, args)
 
 
-def _extract_metatask(previous_task_results, *args):
+def extract_metatask(previous_task_results, *args):
     if isinstance(previous_task_results, ReturnTuple):
         return _compat_return(previous_task_results.metatask, *(previous_task_results.results + args))
     elif isinstance(previous_task_results, tuple):
         return _compat_return(previous_task_results[0], *(previous_task_results[1:] + args))
-    return previous_task_results, args
+    return _compat_return(previous_task_results, *args)
 
 
 # ==================================================
@@ -54,7 +54,7 @@ def stop(metatask, *args):
     MetaTask
 
     """
-    metatask, args = _extract_metatask(metatask, *args)
+    metatask, args = extract_metatask(metatask, *args)
     metatask.stop()
     return _compat_return(metatask, *args)
 
@@ -76,7 +76,7 @@ def remove_old_jobs(metatask, *args):
     -------
 
     """
-    metatask, args = _extract_metatask(metatask, *args)
+    metatask, args = extract_metatask(metatask, *args)
     from django.utils.timezone import now
     candidates = metatask.job.__class__.objects.filter(closure__lt=now())
     for candidate in candidates:
