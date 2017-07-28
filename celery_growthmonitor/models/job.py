@@ -1,6 +1,11 @@
 import os
+import re
+from distutils.version import StrictVersion
+from enum import unique
 
 from autoslug import AutoSlugField
+from django import get_version as django_version
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -110,7 +115,7 @@ class AJob(models.Model):
     --------
     http://stackoverflow.com/questions/16655097/django-abstract-models-versus-regular-inheritance#16838663
     """
-    from enum import unique
+
     from echoices.enums import EChoice
     from echoices.fields import make_echoicefield
 
@@ -134,6 +139,10 @@ class AJob(models.Model):
         SUCCESS = (10, 'Success')
         FAILURE = (20, 'Failure')
 
+    IDENTIFIER_MIN_LENGTH = 0
+    IDENTIFIER_MAX_LENGTH = 32
+    IDENTIFIER_ALLOWED_CHARS = "[a-zA-Z0-9]"
+    IDENTIFIER_REGEX = re.compile("{}{{{},}}".format(IDENTIFIER_ALLOWED_CHARS, IDENTIFIER_MIN_LENGTH))
     SLUG_MAX_LENGTH = 32
     SLUG_RND_LENGTH = 6
 
@@ -150,20 +159,33 @@ class AJob(models.Model):
             import random as rnd
             slug = slug[:self.SLUG_MAX_LENGTH - self.SLUG_RND_LENGTH] + \
                    str(rnd.randrange(10 ** (self.SLUG_RND_LENGTH - 1), 10 ** self.SLUG_RND_LENGTH))
+        # TODO: assert uniqueness, otherwise regen
         return slug
 
     timestamp = models.DateTimeField(verbose_name=_("Job creation timestamp"), auto_now_add=True)
     # TODO: validate identifier over allowance for slug or [a-zA-Z0-9_]
-    identifier = models.CharField(max_length=64, blank=True, db_index=True,
-                                  help_text=_("Human readable identifier, as provided by the submitter"))
+    identifier = models.CharField(
+        max_length=IDENTIFIER_MAX_LENGTH,
+        blank=True,
+        db_index=True,
+        help_text=_("Human readable identifier, as provided by the submitter"),
+        validators=[RegexValidator(regex=IDENTIFIER_REGEX)])
     state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
-    duration = models.DurationField(editable=False, null=True)
-    slug = AutoSlugField(max_length=SLUG_MAX_LENGTH, unique=True, editable=True, populate_from=slug_default,
-                         db_index=True, help_text=_("Human readable url, must be unique, "
-                                                    "a default one will be generated if none is given"))
-    closure = models.DateTimeField(blank=True, null=True, db_index=True, help_text=_(
-        "Timestamp of removal, will be set automatically on creation if not given"))  # Default is set on save()
+    duration = models.DurationField(null=True, editable=False)
+    slug = AutoSlugField(
+        max_length=SLUG_MAX_LENGTH,
+        unique=True,
+        editable=True,
+        populate_from=slug_default,
+        db_index=True,
+        help_text=_("Human readable url, must be unique, a default one will be generated if none is given"))
+    closure = models.DateTimeField(
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text=_("Timestamp of removal, will be set automatically on creation if not given")
+    )  # Default is set on save()
 
     def save(self, *args, results_exist_ok=False, **kwargs):
         created = not self.id
@@ -177,9 +199,6 @@ class AJob(models.Model):
 
 
 class ADataFile(models.Model):
-    from django import get_version as django_version
-    from distutils.version import StrictVersion
-
     class Meta:
         abstract = True
 
