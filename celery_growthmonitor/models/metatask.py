@@ -34,7 +34,7 @@ class MetaTask:
 
         """
         old_state = self.job.state
-        self.job.state = new_state.value
+        self.job.state = new_state
         self.job.save()
         return old_state
 
@@ -57,10 +57,10 @@ class MetaTask:
 
         """
         self.completed = datetime.now()
-        self.job.status = AJob.EStatuses.FAILURE.value if self.error else AJob.EStatuses.SUCCESS.value
+        self.job.status = AJob.EStatuses.FAILURE if self.error else AJob.EStatuses.SUCCESS
         self.progress(AJob.EStates.COMPLETED)  # This will also save the job
-        logger.debug("Job {} terminated in {}s with status {}".format(self.job.id, self.duration,
-                                                                      AJob.EStatuses.from_value(self.job.status).label))
+        logger.debug(
+            "Job {} terminated in {}s with status {}".format(self.job.id, self.duration, self.job.status.label))
         return self.duration
 
     def failed(self, exception):
