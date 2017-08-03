@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import os
+from codecs import open
 
-from celery_growthmonitor import __version__
 from setuptools import find_packages, setup
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+from celery_growthmonitor import __version__
+
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.rst')) as readme:
     README = readme.read()
 
 # allow setup.py to be run from any path
@@ -21,7 +24,7 @@ setup(
     description='A Django helper to monitor jobs running Celery tasks',
     long_description=README,
     url='https://github.com/mbourqui/django-celery-growthmonitor',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests', 'celery_growthmonitor.tests']),
     include_package_data=True,
     package_data={
         '': ['*.po', '*.mo'],
