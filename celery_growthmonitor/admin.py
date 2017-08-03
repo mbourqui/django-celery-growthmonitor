@@ -11,9 +11,15 @@ class AJobAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'timestamp', 'state', 'status', 'duration', 'closure')
 
 
-class AFieldsForDataFileAdmin:
+class AFieldsForDataFileAdmin(admin.options.InlineModelAdmin):
     __metaclass__ = ABCMeta
 
     fields = ('data',)
     readonly_fields = ('data',)
     can_delete = False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, **kwargs):
+        return False
