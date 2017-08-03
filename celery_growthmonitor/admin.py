@@ -8,6 +8,7 @@ class AJobAdmin(admin.ModelAdmin):
 
     fields = ('timestamp', 'identifier', 'state', 'status', 'duration', 'slug', 'closure')
     readonly_fields = ('timestamp', 'state', 'status', 'duration')
+    list_display = ('__str__', 'timestamp', 'state', 'status', 'duration', 'closure')
 
 
 class AFieldsForDataFileAdmin:

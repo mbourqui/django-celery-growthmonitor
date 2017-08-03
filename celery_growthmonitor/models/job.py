@@ -83,7 +83,6 @@ def job_data(instance, filename=''):
     str
         Path to filename which is unique for a job
     """
-
     head = root_job(instance.job) if isinstance(instance, ADataFile) else root_job(instance)
     tail = _user_path(instance.upload_to_data, filename) or os.path.join('data', filename)
     return os.path.join(head, tail)
@@ -136,8 +135,8 @@ class AJob(models.Model):
     @unique
     class EStatuses(EChoice):
         ACTIVE = (0, 'Active')
-        SUCCESS = (10, 'Success')
-        FAILURE = (20, 'Failure')
+        SUCCESS = (10, 'Succeeded')
+        FAILURE = (20, 'Failed')
 
     IDENTIFIER_MIN_LENGTH = 0
     IDENTIFIER_MAX_LENGTH = 32
@@ -186,6 +185,9 @@ class AJob(models.Model):
         db_index=True,
         help_text=_("Timestamp of removal, will be set automatically on creation if not given")
     )  # Default is set on save()
+
+    def __str__(self):
+        return str('{} {} ({} and {})'.format(self.__class__.__name__, self.id, self.state.label, self.status.label))
 
     def save(self, *args, results_exist_ok=False, **kwargs):
         created = not self.id

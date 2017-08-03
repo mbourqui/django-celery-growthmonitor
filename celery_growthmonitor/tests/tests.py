@@ -138,12 +138,14 @@ class TasksTestCase(TestCase):
         shutil.rmtree(os.path.join(settings.CELERY_GROWTHMONITOR_APP_ROOT, ))
 
     def test_no_task(self):
+        self.assertEqual(self.job.__str__(), 'TestJob 1 (Created and Active)')
         workflow = chain(self.mt, )
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
         self.assertIsInstance(result.result[0], MetaTask)
         self.assertIsInstance(result.result[1], tuple)
+        self.assertEqual(self.job.__str__(), 'TestJob 1 (Completed and Succeeded)')
 
     def test_identity_task(self):
         workflow = chain(self.mt, tasks.identity_task.s())
