@@ -9,7 +9,7 @@ from setuptools import find_packages, setup
 from celery_growthmonitor import __version__
 
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.rst')) as readme:
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as readme:
     README = readme.read()
 
 # allow setup.py to be run from any path
