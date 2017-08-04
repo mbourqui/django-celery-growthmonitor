@@ -1,4 +1,5 @@
 import os
+import random as rnd
 import re
 from distutils.version import StrictVersion
 from enum import unique
@@ -10,6 +11,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from .. import settings
+
+TEMPORARY_JOB_FOLDER = 'tmp'
 
 
 def _user_path(attribute_or_prefix, filename=''):
@@ -44,8 +47,17 @@ def root_job(instance):
         if callable(instance.job_root):
             return instance.job_root()
         else:
-            return os.path.join(str(instance.job_root), str(instance.id))
-    return os.path.join(settings.APP_ROOT, instance.__class__.__name__.lower(), str(instance.id))
+            head = str(instance.job_root)
+    else:
+        head = os.path.join(settings.APP_ROOT, instance.__class__.__name__.lower())
+    if not instance.id or (
+            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
+        # Assuming we are using JobWithRequiredUserFilesManager
+        assert hasattr(instance, '_tmp_id'), "Please use the {} manager".format(JobWithRequiredUserFilesManager)
+        tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
+    else:
+        tail = str(instance.id)
+    return os.path.join(head, tail)
 
 
 def job_root(instance, filename=''):
@@ -108,6 +120,43 @@ def job_results(instance, filename=''):
     return os.path.join(root_job(instance), tail)
 
 
+def move_to_data(sender, instance, created, **kwargs):
+    # https://stackoverflow.com/a/16574947/
+    if not hasattr(instance, 'required_user_files'):
+        raise AttributeError(
+            "{} is not set properly, please set {} as manager".format(sender, JobWithRequiredUserFilesManager))
+    if created:
+        # TODO: assert required_user_files is not empty? --> user warning?
+        for field in instance.required_user_files:
+            file = getattr(instance, field) if isinstance(field, str) else getattr(instance, field.attname)
+            if not file:
+                raise FileNotFoundError("{} is indicated as required, but no file could be found".format(field))
+            # Create new filename, using primary key and file extension
+            old_filename = file.name
+            new_filename = file.field.upload_to(instance, os.path.basename(old_filename))
+            # Create new file and remove old one
+            file.storage.save(new_filename, file)
+            file.name = new_filename
+            file.close()
+            file.storage.delete(old_filename)
+            # FIXME: sometimes _tmp_files is empty
+            getattr(instance, '_tmp_files').remove(field)
+        import shutil
+        shutil.rmtree(root_job(instance))
+        setattr(instance, '_tmp_id', 0)
+
+
+class JobWithRequiredUserFilesManager(models.Manager):
+    def contribute_to_class(self, model, name):
+        super(JobWithRequiredUserFilesManager, self).contribute_to_class(model, name)
+        setattr(model, 'upload_to_data', getattr(model, 'upload_to_data', None))
+        setattr(model, 'required_user_files', getattr(model, 'required_user_files', []))
+        setattr(model, '_tmp_id', rnd.randrange(10 ** 6, 10 ** 7))
+        # FIXME: sometimes _tmp_files is empty
+        setattr(model, '_tmp_files', list(getattr(model, 'required_user_files')))
+        models.signals.post_save.connect(move_to_data, model)
+
+
 class AJob(models.Model):
     """
     See Also
@@ -155,7 +204,6 @@ class AJob(models.Model):
             slug = self.__class__.__name__[0]
         slug += self.timestamp.strftime("%y%m%d%H%M")  # YYMMDDHHmm
         if len(slug) > self.SLUG_MAX_LENGTH:
-            import random as rnd
             slug = slug[:self.SLUG_MAX_LENGTH - self.SLUG_RND_LENGTH] + \
                    str(rnd.randrange(10 ** (self.SLUG_RND_LENGTH - 1), 10 ** self.SLUG_RND_LENGTH))
         # TODO: assert uniqueness, otherwise regen

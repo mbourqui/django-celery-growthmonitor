@@ -76,7 +76,7 @@ class JobTestCase(TestCase):
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
 
-    def test_job_with_file(self):
+    def test_job_with_data_file(self):
         test_file = ContentFile('DUMMY CONTENT', 'foobar.txt')
         # Base case
         test_job = models.TestJob()
@@ -122,6 +122,19 @@ class JobTestCase(TestCase):
         annotation = models.MyRootDataFuncTestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
+
+    def test_job_with_user_required_file(self):
+        sample_file = ContentFile('SAMPLE DUMMY CONTENT', 'sample.txt')
+        other_file = ContentFile('OTHER DUMMY CONTENT', 'other.txt')
+        # Base case
+        expected_sample_path = os.path.join(settings.APP_ROOT, 'testjobwithrequiredfile', '1', 'data', 'sample.txt')
+        expected_other_path = os.path.join(settings.APP_ROOT, 'testjobwithrequiredfile', '1', 'data', 'other.txt')
+        self.assertFalse(os.path.exists(expected_sample_path))
+        self.assertFalse(os.path.exists(expected_other_path))
+        test_job = models.TestJobWithRequiredFile(sample=sample_file, other=other_file)
+        test_job.save()
+        self.assertTrue(os.path.exists(expected_sample_path))
+        self.assertTrue(os.path.exists(expected_other_path))
 
 
 class TasksTestCase(TestCase):
