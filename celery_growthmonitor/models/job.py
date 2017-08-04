@@ -127,6 +127,7 @@ def move_to_data(sender, instance, created, **kwargs):
             "{} is not set properly, please set {} as manager".format(sender, JobWithRequiredUserFilesManager))
     if created:
         # TODO: assert required_user_files is not empty? --> user warning?
+        setattr(instance, '_tmp_files', list(getattr(instance, 'required_user_files')))
         for field in instance.required_user_files:
             file = getattr(instance, field) if isinstance(field, str) else getattr(instance, field.attname)
             if not file:
@@ -139,7 +140,6 @@ def move_to_data(sender, instance, created, **kwargs):
             file.name = new_filename
             file.close()
             file.storage.delete(old_filename)
-            # FIXME: sometimes _tmp_files is empty
             getattr(instance, '_tmp_files').remove(field)
         import shutil
         shutil.rmtree(root_job(instance))
@@ -152,8 +152,6 @@ class JobWithRequiredUserFilesManager(models.Manager):
         setattr(model, 'upload_to_data', getattr(model, 'upload_to_data', None))
         setattr(model, 'required_user_files', getattr(model, 'required_user_files', []))
         setattr(model, '_tmp_id', rnd.randrange(10 ** 6, 10 ** 7))
-        # FIXME: sometimes _tmp_files is empty
-        setattr(model, '_tmp_files', list(getattr(model, 'required_user_files')))
         models.signals.post_save.connect(move_to_data, model)
 
 
