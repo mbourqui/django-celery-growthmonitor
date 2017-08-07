@@ -20,7 +20,7 @@ class JobTestCase(TestCase):
         import os
         import shutil
         # Database is not kept but files would be otherwise
-        shutil.rmtree(os.path.join(settings.django_settings.MEDIA_ROOT, ))
+        shutil.rmtree(os.path.join(settings.APP_ROOT, ))
 
     def test_timezone(self):
         from django.conf import settings
@@ -39,14 +39,13 @@ class JobTestCase(TestCase):
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.django_settings.MEDIA_ROOT, models.MyRootStrTestJob.job_root,
-                                     '1', 'results')
+        expected_path = os.path.join(settings.APP_ROOT, models.MyRootStrTestJob.job_root, '1', 'results')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootStrTestJob()
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.django_settings.MEDIA_ROOT, 'my_root_func', '1', 'results')
+        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'results')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootFuncTestJob()
         test_job.save()
@@ -70,7 +69,7 @@ class JobTestCase(TestCase):
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.django_settings.MEDIA_ROOT, 'my_root_func', '1', 'my_results_func')
+        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'my_results_func')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootResultsFuncTestJob()
         test_job.save()
@@ -110,14 +109,13 @@ class JobTestCase(TestCase):
         #
         test_job = models.MyRootFuncTestJob()
         test_job.save()
-        expected_path = os.path.join(settings.django_settings.MEDIA_ROOT, 'my_root_func', '1', 'data', 'foobar.txt')
+        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'data', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.MyRootFuncTestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
         #
-        expected_path = os.path.join(settings.django_settings.MEDIA_ROOT, 'my_root_func', '1', 'my_data_func',
-                                     'foobar.txt')
+        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'my_data_func', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.MyRootDataFuncTestFile(job=test_job, data=test_file)
         annotation.save()
@@ -135,6 +133,7 @@ class JobTestCase(TestCase):
         test_job.save()
         self.assertTrue(os.path.exists(expected_sample_path))
         self.assertTrue(os.path.exists(expected_other_path))
+        # TODO: test file path in test_job
 
 
 class TasksTestCase(TestCase):

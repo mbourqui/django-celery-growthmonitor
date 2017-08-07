@@ -45,19 +45,19 @@ def root_job(instance):
     """
     if instance.job_root:
         if callable(instance.job_root):
-            return instance.job_root()
+            return os.path.join(settings.APP_ROOT, instance.job_root())
         else:
             head = str(instance.job_root)
     else:
-        head = os.path.join(settings.APP_ROOT, instance.__class__.__name__.lower())
+        head = instance.__class__.__name__.lower()
     if not instance.id or (
-            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
+                    instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
         # Assuming we are using JobWithRequiredUserFilesManager
         assert hasattr(instance, '_tmp_id'), "Please use the {} manager".format(JobWithRequiredUserFilesManager)
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
-    return os.path.join(head, tail)
+    return os.path.join(settings.APP_ROOT, head, tail)
 
 
 def job_root(instance, filename=''):
@@ -243,7 +243,7 @@ class AJob(models.Model):
             self.closure = self.timestamp + settings.TTL
             super(AJob, self).save(*args, **kwargs)  # Write closure to DB
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
-            os.makedirs(os.path.join(settings.django_settings.MEDIA_ROOT, job_results(self)), exist_ok=results_exist_ok)
+            os.makedirs(job_results(self), exist_ok=results_exist_ok)
 
 
 class ADataFile(models.Model):
