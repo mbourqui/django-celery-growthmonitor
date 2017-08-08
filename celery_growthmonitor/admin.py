@@ -21,5 +21,5 @@ class AFieldsForDataFileAdmin(admin.options.InlineModelAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request, **kwargs):
+    def has_change_permission(self, request, *args, **kwargs):
         return False
