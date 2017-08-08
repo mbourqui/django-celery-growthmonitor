@@ -209,6 +209,7 @@ class AJob(models.Model):
             # Create new filename, using primary key and file extension
             old_filename = file.name
             new_filename = file.field.upload_to(self, os.path.basename(old_filename))
+            # TODO: try this instead: https://docs.djangoproject.com/en/1.11/topics/files/#using-files-in-models
             # Create new file and remove old one
             file.storage.save(new_filename, file)
             file.name = new_filename
