@@ -1,6 +1,6 @@
 from django.db import models
 
-from celery_growthmonitor.models import AJob, ADataFile, job_data, job_results, JobWithRequiredUserFilesManager
+from celery_growthmonitor.models import AJob, ADataFile, job_data, job_results
 
 
 class TestJob(AJob):
@@ -90,8 +90,6 @@ class MyRootDataFuncTestFile(ACompatDataFile):
 
 
 class TestJobWithRequiredFile(AJob):
-    objects = JobWithRequiredUserFilesManager()
-
     sample = models.FileField(upload_to=job_data, max_length=256)
     other = models.FileField(upload_to=job_data, max_length=256)
 

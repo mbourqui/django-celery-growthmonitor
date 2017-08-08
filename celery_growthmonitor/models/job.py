@@ -51,9 +51,7 @@ def root_job(instance):
     else:
         head = instance.__class__.__name__.lower()
     if not instance.id or (
-                    instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
-        # Assuming we are using JobWithRequiredUserFilesManager
-        assert hasattr(instance, '_tmp_id'), "Please use the {} manager".format(JobWithRequiredUserFilesManager)
+            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
@@ -118,41 +116,6 @@ def job_results(instance, filename=''):
     """
     tail = _user_path(instance.upload_to_results, filename) or os.path.join('results', filename)
     return os.path.join(root_job(instance), tail)
-
-
-def move_to_data(sender, instance, created, **kwargs):
-    # https://stackoverflow.com/a/16574947/
-    if not hasattr(instance, 'required_user_files'):
-        raise AttributeError(
-            "{} is not set properly, please set {} as manager".format(sender, JobWithRequiredUserFilesManager))
-    if created:
-        # TODO: assert required_user_files is not empty? --> user warning?
-        setattr(instance, '_tmp_files', list(getattr(instance, 'required_user_files')))
-        for field in instance.required_user_files:
-            file = getattr(instance, field) if isinstance(field, str) else getattr(instance, field.attname)
-            if not file:
-                raise FileNotFoundError("{} is indicated as required, but no file could be found".format(field))
-            # Create new filename, using primary key and file extension
-            old_filename = file.name
-            new_filename = file.field.upload_to(instance, os.path.basename(old_filename))
-            # Create new file and remove old one
-            file.storage.save(new_filename, file)
-            file.name = new_filename
-            file.close()
-            file.storage.delete(old_filename)
-            getattr(instance, '_tmp_files').remove(field)
-        import shutil
-        shutil.rmtree(root_job(instance))
-        setattr(instance, '_tmp_id', 0)
-
-
-class JobWithRequiredUserFilesManager(models.Manager):
-    def contribute_to_class(self, model, name):
-        super(JobWithRequiredUserFilesManager, self).contribute_to_class(model, name)
-        setattr(model, 'upload_to_data', getattr(model, 'upload_to_data', None))
-        setattr(model, 'required_user_files', getattr(model, 'required_user_files', []))
-        setattr(model, '_tmp_id', rnd.randrange(10 ** 6, 10 ** 7))
-        models.signals.post_save.connect(move_to_data, model)
 
 
 class AJob(models.Model):
@@ -235,13 +198,47 @@ class AJob(models.Model):
     def __str__(self):
         return str('{} {} ({} and {})'.format(self.__class__.__name__, self.id, self.state.label, self.status.label))
 
+    def _move_data_from_tmp_to_upload(self):
+        # https://stackoverflow.com/a/16574947/
+        # TODO: assert required_user_files is not empty? --> user warning?
+        setattr(self, '_tmp_files', list(getattr(self, 'required_user_files')))
+        for field in self.required_user_files:
+            file = getattr(self, field) if isinstance(field, str) else getattr(self, field.attname)
+            if not file:
+                raise FileNotFoundError("{} is indicated as required, but no file could be found".format(field))
+            # Create new filename, using primary key and file extension
+            old_filename = file.name
+            new_filename = file.field.upload_to(self, os.path.basename(old_filename))
+            # Create new file and remove old one
+            file.storage.save(new_filename, file)
+            file.name = new_filename
+            file.close()
+            file.storage.delete(old_filename)
+            getattr(self, '_tmp_files').remove(field)
+        import shutil
+        shutil.rmtree(root_job(self))
+        setattr(self, '_tmp_id', 0)
+
     def save(self, *args, results_exist_ok=False, **kwargs):
         created = not self.id
-        super(AJob, self).save(*args, **kwargs)  # Call the "real" save() method.
+        if created and getattr(self, 'required_user_files', []):
+            setattr(self, 'upload_to_data', getattr(self, 'upload_to_data', None))
+            setattr(self, '_tmp_id', rnd.randrange(10 ** 6, 10 ** 7))
+        try:
+            super(AJob, self).save(*args, **kwargs)  # Call the "real" save() method.
+        except AttributeError as ae:
+            if "object has no attribute '_tmp_id'" in str(ae.args):
+                raise AttributeError(
+                    "It looks like you forgot to set the `required_user_files` attribute on {}.".format(
+                        self.__class__)) from None
+            raise ae
         if created:
             # Set timeout
             self.closure = self.timestamp + settings.TTL
-            super(AJob, self).save(*args, **kwargs)  # Write closure to DB
+            super(AJob, self).save()  # Write closure to DB
+            if getattr(self, 'required_user_files', []):
+                self._move_data_from_tmp_to_upload()
+                super(AJob, self).save()  # Persist file changes
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
             os.makedirs(job_results(self), exist_ok=results_exist_ok)
 
