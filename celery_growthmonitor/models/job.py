@@ -187,7 +187,6 @@ class AJob(models.Model):
         help_text=_("Human readable url, must be unique, a default one will be generated if none is given"),
         max_length=SLUG_MAX_LENGTH,
         populate_from=slug_default,
-        strip=True,
         unique=True)
     closure = models.DateTimeField(
         blank=True,
