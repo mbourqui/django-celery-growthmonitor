@@ -64,7 +64,6 @@ class MetaTask:
         return self.duration
 
     def failed(self, exception):
-        self.progress(AJob.EStates.ERROR)
         self.error = exception
         # TODO: http://stackoverflow.com/questions/4564559/
         logger.exception(exception)

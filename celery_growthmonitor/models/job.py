@@ -51,7 +51,7 @@ def root_job(instance):
     else:
         head = instance.__class__.__name__.lower()
     if not instance.id or (
-            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
+                    instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
@@ -182,12 +182,13 @@ class AJob(models.Model):
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
     duration = models.DurationField(null=True, editable=False)
     slug = AutoSlugField(
-        max_length=SLUG_MAX_LENGTH,
-        unique=True,
-        editable=True,
-        populate_from=slug_default,
         db_index=True,
-        help_text=_("Human readable url, must be unique, a default one will be generated if none is given"))
+        editable=True,
+        help_text=_("Human readable url, must be unique, a default one will be generated if none is given"),
+        max_length=SLUG_MAX_LENGTH,
+        populate_from=slug_default,
+        strip=True,
+        unique=True)
     closure = models.DateTimeField(
         blank=True,
         null=True,
