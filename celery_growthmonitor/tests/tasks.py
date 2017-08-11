@@ -1,6 +1,8 @@
 from __future__ import absolute_import, unicode_literals
-from ..workflows.tasks import _compat_return
+
 from celery import shared_task
+
+from ..workflows.tasks import _compat_return
 
 
 @shared_task

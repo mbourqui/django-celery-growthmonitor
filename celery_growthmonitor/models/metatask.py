@@ -44,7 +44,7 @@ class MetaTask:
         """
         self.progress(AJob.EStates.RUNNING)
         self.started = datetime.now()
-        logger.debug("Starting job {} at {}".format(self.job.id, self.started))
+        logger.debug("Starting {} at {}".format(self.job, self.started))
 
     def stop(self):
         """
@@ -57,16 +57,19 @@ class MetaTask:
 
         """
         self.completed = datetime.now()
-        self.job.status = AJob.EStatuses.FAILURE if self.error else AJob.EStatuses.SUCCESS
+        self.job.status = AJob.EStatuses.FAILURE if self.has_failed() else AJob.EStatuses.SUCCESS
         self.progress(AJob.EStates.COMPLETED)  # This will also save the job
         logger.debug(
-            "Job {} terminated in {}s with status {}".format(self.job.id, self.duration, self.job.status.label))
+            "{} terminated in {}s with status '{}'".format(self.job, self.duration, self.job.status.label))
         return self.duration
 
-    def failed(self, exception):
-        self.error = exception
+    def failed(self, task, exception):
+        self.error = (task.__name__, exception)
         # TODO: http://stackoverflow.com/questions/4564559/
-        logger.exception(exception)
+        logger.exception("Task %s failed with following exception: %s", task.__name__, exception)
+
+    def has_failed(self):
+        return bool(self.error)
 
     @property
     def duration(self):
