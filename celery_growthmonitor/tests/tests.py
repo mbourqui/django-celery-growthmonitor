@@ -16,11 +16,16 @@ warnings.simplefilter("always")
 
 
 class JobTestCase(TestCase):
+    def setUp(self):
+        self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_ROOT)
+
+    def build_path(self, *args):
+        return os.path.join(self.app_root, *args)
+
     def tearDown(self):
-        import os
         import shutil
         # Database is not kept but files would be otherwise
-        shutil.rmtree(os.path.join(settings.APP_ROOT, ))
+        shutil.rmtree(self.build_path())
 
     def test_timezone(self):
         from django.conf import settings
@@ -33,43 +38,43 @@ class JobTestCase(TestCase):
 
     def test_job(self):
         # Base case
-        expected_path = os.path.join(settings.APP_ROOT, 'testjob', '1', 'results')
+        expected_path = self.build_path('testjob', '1', 'results')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.TestJob()
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, models.MyRootStrTestJob.job_root, '1', 'results')
+        expected_path = self.build_path(models.MyRootStrTestJob.job_root, '1', 'results')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootStrTestJob()
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'results')
+        expected_path = self.build_path('my_root_func', '1', 'results')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootFuncTestJob()
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'myresultsstrtestjob', '1', 'my_results_str')
+        expected_path = self.build_path('myresultsstrtestjob', '1', 'my_results_str')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyResultsStrTestJob()
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'myresultsfunctestjob', '1', 'my_results_func')
+        expected_path = self.build_path('myresultsfunctestjob', '1', 'my_results_func', )
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyResultsFuncTestJob()
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'jobresultsfunctestjob', '1', 'results')
+        expected_path = self.build_path('jobresultsfunctestjob', '1', 'results')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.JobResultsFuncTestJob()
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'my_results_func')
+        expected_path = self.build_path('my_root_func', '1', 'my_results_func')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootResultsFuncTestJob()
         test_job.save()
@@ -82,25 +87,25 @@ class JobTestCase(TestCase):
         test_job.save()
         test_job_two = models.TestJobTwo()
         test_job_two.save()
-        expected_path = os.path.join(settings.APP_ROOT, 'testjob', '1', 'data', 'foobar.txt')
+        expected_path = self.build_path('testjob', '1', 'data', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.TestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'testjobtwo', '1', 'data', 'foobar.txt')
+        expected_path = self.build_path('testjobtwo', '1', 'data', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.JobDataFuncTestFile(job=test_job_two, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'testjob', '1', 'my_data_str', 'foobar.txt')
+        expected_path = self.build_path('testjob', '1', 'my_data_str', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.MyDataStrTestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'testjob', '1', 'my_data_func', 'foobar.txt')
+        expected_path = self.build_path('testjob', '1', 'my_data_func', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.MyDataFuncTestFile(job=test_job, data=test_file)
         annotation.save()
@@ -109,24 +114,27 @@ class JobTestCase(TestCase):
         #
         test_job = models.MyRootFuncTestJob()
         test_job.save()
-        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'data', 'foobar.txt')
+        expected_path = self.build_path('my_root_func', '1', 'data', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.MyRootFuncTestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
         #
-        expected_path = os.path.join(settings.APP_ROOT, 'my_root_func', '1', 'my_data_func', 'foobar.txt')
+        expected_path = self.build_path('my_root_func', '1', 'my_data_func', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.MyRootDataFuncTestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
+        #
+        #
+        # TODO: tests with my_results_func
 
     def test_job_with_user_required_file(self):
         sample_file = ContentFile('SAMPLE DUMMY CONTENT', 'sample.txt')
         other_file = ContentFile('OTHER DUMMY CONTENT', 'other.txt')
         # Base case
-        expected_sample_path = os.path.join(settings.APP_ROOT, 'testjobwithrequiredfile', '1', 'data', 'sample.txt')
-        expected_other_path = os.path.join(settings.APP_ROOT, 'testjobwithrequiredfile', '1', 'data', 'other.txt')
+        expected_sample_path = self.build_path('testjobwithrequiredfile', '1', 'data', 'sample.txt')
+        expected_other_path = self.build_path('testjobwithrequiredfile', '1', 'data', 'other.txt')
         self.assertFalse(os.path.exists(expected_sample_path))
         self.assertFalse(os.path.exists(expected_other_path))
         test_job = models.TestJobWithRequiredFile(sample=sample_file, other=other_file)
@@ -141,13 +149,15 @@ class TasksTestCase(TestCase):
         self.job = models.TestJob()
         self.job.save()
         self.mt = MetaTask(self.job)
+        self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_ROOT)
+
+    def build_path(self, *args):
+        return os.path.join(self.app_root, *args)
 
     def tearDown(self):
-        from django.conf import settings
-        import os
         import shutil
         # Database is not kept but files would be otherwise
-        shutil.rmtree(os.path.join(settings.CELERY_GROWTHMONITOR_APP_ROOT, ))
+        shutil.rmtree(self.build_path())
 
     def test_no_task(self):
         self.assertEqual(self.job.__str__(), 'TestJob 1 (Created and Active)')

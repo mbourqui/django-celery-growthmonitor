@@ -217,7 +217,7 @@ class AJob(models.Model):
             file.storage.delete(old_filename)
             getattr(self, '_tmp_files').remove(field)
         import shutil
-        shutil.rmtree(root_job(self))
+        shutil.rmtree(os.path.join(settings.django_settings.MEDIA_ROOT, root_job(self)))
         setattr(self, '_tmp_id', 0)
 
     def save(self, *args, results_exist_ok=False, **kwargs):
@@ -241,7 +241,7 @@ class AJob(models.Model):
                 self._move_data_from_tmp_to_upload()
                 super(AJob, self).save()  # Persist file changes
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
-            os.makedirs(job_results(self), exist_ok=results_exist_ok)
+            os.makedirs(os.path.join(settings.django_settings.MEDIA_ROOT, job_results(self)), exist_ok=results_exist_ok)
 
 
 class ADataFile(models.Model):

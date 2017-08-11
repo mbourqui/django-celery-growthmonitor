@@ -11,5 +11,4 @@ TTL = getattr(django_settings, '{}_TTL'.format(CeleryGrowthMonitorConfig.name.up
 Time to live. After that time, jobs should be dropped from file system.
 """
 
-APP_ROOT = getattr(django_settings, '{}_APP_ROOT'.format(CeleryGrowthMonitorConfig.name.upper()),
-                   django_settings.MEDIA_ROOT)
+APP_ROOT = getattr(django_settings, '{}_APP_ROOT'.format(CeleryGrowthMonitorConfig.name.upper()), '')

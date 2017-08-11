@@ -68,4 +68,4 @@ CELERY_RESULT_SERIALIZER = 'pickle'
 
 # CELERY-GROWTHMONITOR
 # ------------------------------------------------------------------------------
-CELERY_GROWTHMONITOR_APP_ROOT = os.path.join(MEDIA_ROOT, 'c_gm')
+CELERY_GROWTHMONITOR_APP_ROOT = 'c_gm'
