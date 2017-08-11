@@ -45,7 +45,7 @@ def root_job(instance):
     """
     if instance.job_root:
         if callable(instance.job_root):
-            return os.path.join(settings.APP_ROOT, instance.job_root())
+            return os.path.join(settings.APP_MEDIA_ROOT, instance.job_root())
         else:
             head = str(instance.job_root)
     else:
@@ -55,7 +55,7 @@ def root_job(instance):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
-    return os.path.join(settings.APP_ROOT, head, tail)
+    return os.path.join(settings.APP_MEDIA_ROOT, head, tail)
 
 
 def job_root(instance, filename=''):

@@ -17,7 +17,7 @@ warnings.simplefilter("always")
 
 class JobTestCase(TestCase):
     def setUp(self):
-        self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_ROOT)
+        self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_MEDIA_ROOT)
 
     def build_path(self, *args):
         return os.path.join(self.app_root, *args)
@@ -149,7 +149,7 @@ class TasksTestCase(TestCase):
         self.job = models.TestJob()
         self.job.save()
         self.mt = MetaTask(self.job)
-        self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_ROOT)
+        self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_MEDIA_ROOT)
 
     def build_path(self, *args):
         return os.path.join(self.app_root, *args)
