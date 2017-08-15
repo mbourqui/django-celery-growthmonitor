@@ -64,7 +64,7 @@ class MetaTask:
         return self.duration
 
     def failed(self, task, exception):
-        self.error = (task.__name__, exception)
+        self.error = dict(task=task.__name__, exception=exception)
         # TODO: http://stackoverflow.com/questions/4564559/
         logger.exception("Task %s failed with following exception: %s", task.__name__, exception)
 
