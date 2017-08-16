@@ -2,16 +2,16 @@ from collections import namedtuple
 
 from celery import shared_task
 
-ReturnTuple = namedtuple('ReturnTuple', ['metatask', 'results'])
+ReturnTuple = namedtuple('ReturnTuple', ['metajob', 'results'])
 
 
-def _compat_return(metatask, *args):
-    return ReturnTuple(metatask, args)
+def _compat_return(metajob, *args):
+    return ReturnTuple(metajob, args)
 
 
-def extract_metatask(previous_task_results, *args):
+def extract_metajob(previous_task_results, *args):
     if isinstance(previous_task_results, ReturnTuple):
-        return _compat_return(previous_task_results.metatask, *(previous_task_results.results + args))
+        return _compat_return(previous_task_results.metajob, *(previous_task_results.results + args))
     elif isinstance(previous_task_results, tuple):
         return _compat_return(previous_task_results[0], *(previous_task_results[1:] + args))
     return _compat_return(previous_task_results, *args)
@@ -22,41 +22,41 @@ def extract_metatask(previous_task_results, *args):
 # ==================================================
 
 @shared_task
-def start(metatask):
+def start(metajob):
     """
     Having a task for starting the job makes sure we measure the right time of running
 
     Parameters
     ----------
-    metatask : MetaTask
+    metajob : MetaJob
 
     Returns
     -------
-    MetaTask
+    MetaJob
     """
-    metatask.start()
-    return metatask
+    metajob.start()
+    return metajob
 
 
 @shared_task
-def stop(metatask, *args):
+def stop(metajob, *args):
     """
     Having a task for stopping the job makes sure we measure the right time of completion (previous task is obviously
     done)
 
     Parameters
     ----------
-    metatask : MetaTask or tuple
+    metajob : MetaJob or tuple
     args
 
     Returns
     -------
-    MetaTask
+    MetaJob
 
     """
-    metatask, args = extract_metatask(metatask, *args)
-    metatask.stop()
-    return _compat_return(metatask, *args)
+    metajob, args = extract_metajob(metajob, *args)
+    metajob.stop()
+    return _compat_return(metajob, *args)
 
 
 # ==================================================
@@ -64,21 +64,21 @@ def stop(metatask, *args):
 # ==================================================
 
 @shared_task
-def remove_old_jobs(metatask, *args):
+def remove_old_jobs(metajob, *args):
     """
 
     Parameters
     ----------
-    metatask : MetaTask or tuple
+    metajob : MetaJob or tuple
     args
 
     Returns
     -------
 
     """
-    metatask, args = extract_metatask(metatask, *args)
+    metajob, args = extract_metajob(metajob, *args)
     from django.utils.timezone import now
-    candidates = metatask.job.__class__.objects.filter(closure__lt=now())
+    candidates = metajob.job.__class__.objects.filter(closure__lt=now())
     for candidate in candidates:
         candidate.delete()
-    return _compat_return(metatask, *args)
+    return _compat_return(metajob, *args)

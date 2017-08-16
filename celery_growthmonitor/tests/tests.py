@@ -9,7 +9,7 @@ from django.test import TestCase
 from celery_growthmonitor.tests import models
 from . import tasks
 from .. import settings
-from ..models import MetaTask
+from ..models import MetaJob
 from ..workflows import chain
 
 warnings.simplefilter("always")
@@ -148,7 +148,7 @@ class TasksTestCase(TestCase):
     def setUp(self):
         self.job = models.TestJob()
         self.job.save()
-        self.mt = MetaTask(self.job)
+        self.mt = MetaJob(self.job)
         self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_MEDIA_ROOT)
 
     def build_path(self, *args):
@@ -165,7 +165,7 @@ class TasksTestCase(TestCase):
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result[0], MetaTask)
+        self.assertIsInstance(result.result[0], MetaJob)
         self.assertIsInstance(result.result[1], tuple)
         self.assertEqual(self.job.__str__(), 'TestJob 1 (Completed and Succeeded)')
 
@@ -174,7 +174,7 @@ class TasksTestCase(TestCase):
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result.metatask, MetaTask)
+        self.assertIsInstance(result.result.metajob, MetaJob)
         self.assertIsInstance(result.result.results, tuple)
 
     def test_constant_task(self):
@@ -182,7 +182,7 @@ class TasksTestCase(TestCase):
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result.metatask, MetaTask)
+        self.assertIsInstance(result.result.metajob, MetaJob)
         self.assertIsInstance(result.result.results, tuple)
         self.assertIs(result.result[1][0], True)
 
@@ -192,7 +192,7 @@ class TasksTestCase(TestCase):
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result.metatask, MetaTask)
+        self.assertIsInstance(result.result.metajob, MetaJob)
         self.assertIsInstance(result.result.results, tuple)
         self.assertIs(result.result.results[0], True)
         self.assertEqual(result.result.results[1], 2)

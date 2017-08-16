@@ -7,7 +7,7 @@ from types import SimpleNamespace
 logger = logging.getLogger(__name__)
 
 
-class MetaTask:
+class MetaJob:
     """
     Parameters
     ----------
