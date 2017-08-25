@@ -8,8 +8,9 @@ from setuptools import find_packages, setup
 
 from celery_growthmonitor import __version__
 
-here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.rst'), encoding='utf-8') as readme:
+REPO_URL = "https://github.com/mbourqui/django-celery-growthmonitor/"
+
+with open(os.path.join(os.path.dirname(__file__), 'README.rst'), encoding='utf-8') as readme:
     README = readme.read()
 
 # allow setup.py to be run from any path
@@ -23,7 +24,8 @@ setup(
     license='GNU GPLv3',
     description='A Django helper to monitor jobs running Celery tasks',
     long_description=README,
-    url='https://github.com/mbourqui/django-celery-growthmonitor',
+    url=REPO_URL,
+    download_url=REPO_URL + 'releases/tag/v' + __version__,
     packages=find_packages(exclude=['celery_growthmonitor.tests', 'celery_growthmonitor.tests.*']),
     include_package_data=True,
     package_data={

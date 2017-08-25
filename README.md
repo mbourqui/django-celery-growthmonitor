@@ -27,7 +27,14 @@ A Django helper to monitor jobs running Celery tasks
 
 ## Installation
 
+### Using PyPI
 1. Run `pip install django-celery-growthmonitor`
+
+### Using the source code
+1. Make sure [`pandoc`](http://pandoc.org/index.html) is installed
+1. Run `./pypi_packager.sh`
+1. Run `pip install dist/django_celery_growthmonitor-x.y.z-[...].wheel`, where `x.y.z` must be replaced by the actual
+   version number and `[...]` depends on your packaging configuration
 
 
 ## Usage
