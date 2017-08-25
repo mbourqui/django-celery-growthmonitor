@@ -49,7 +49,7 @@ class MetaJob:
 
     def stop(self):
         """
-        To be called when the job is completed
+        To be called when the job is completed. Can be called multiple times, will only be applied once.
 
         Returns
         -------
@@ -57,11 +57,12 @@ class MetaJob:
             Duration of the job
 
         """
-        self.completed = datetime.now()
-        self.job.status = AJob.EStatuses.FAILURE if self.has_failed() else AJob.EStatuses.SUCCESS
-        self.progress(AJob.EStates.COMPLETED)  # This will also save the job
-        logger.debug(
-            "{} terminated in {}s with status '{}'".format(self.job, self.duration, self.job.status.label))
+        if self.completed is None:
+            self.completed = datetime.now()
+            self.job.status = AJob.EStatuses.FAILURE if self.has_failed() else AJob.EStatuses.SUCCESS
+            self.progress(AJob.EStates.COMPLETED)  # This will also save the job
+            logger.debug(
+                "{} terminated in {}s with status '{}'".format(self.job, self.duration, self.job.status.label))
         return self.duration
 
     def failed(self, task, exception):
