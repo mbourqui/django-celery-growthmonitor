@@ -170,13 +170,13 @@ class AJob(models.Model):
         # TODO: assert uniqueness, otherwise regen
         return slug
 
-    timestamp = models.DateTimeField(verbose_name=_("Job creation timestamp"), auto_now_add=True)
+    timestamp = models.DateTimeField(verbose_name=_("job creation timestamp"), auto_now_add=True)
     # TODO: validate identifier over allowance for slug or [a-zA-Z0-9_]
     identifier = models.CharField(
         max_length=IDENTIFIER_MAX_LENGTH,
         blank=True,
         db_index=True,
-        help_text=_("Human readable identifier, as provided by the submitter"),
+        help_text=_("human readable identifier, as provided by the submitter"),
         validators=[RegexValidator(regex=IDENTIFIER_REGEX)])
     state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
@@ -184,7 +184,7 @@ class AJob(models.Model):
     slug = AutoSlugField(
         db_index=True,
         editable=True,
-        help_text=_("Human readable url, must be unique, a default one will be generated if none is given"),
+        help_text=_("human readable url, must be unique, a default one will be generated if none is given"),
         max_length=SLUG_MAX_LENGTH,
         populate_from=slug_default,
         unique=True)
@@ -192,7 +192,7 @@ class AJob(models.Model):
         blank=True,
         null=True,
         db_index=True,
-        help_text=_("Timestamp of removal, will be set automatically on creation if not given")
+        help_text=_("timestamp of removal, will be set automatically on creation if not given")
     )  # Default is set on save()
 
     def __str__(self):
