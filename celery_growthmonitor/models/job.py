@@ -183,11 +183,6 @@ class AJob(models.Model):
         db_index=True,
         help_text=_("human readable identifier, as provided by the submitter"),
         validators=[RegexValidator(regex=IDENTIFIER_REGEX)])
-    state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
-    status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
-    started = models.DateTimeField(null=True, editable=False)
-    duration = models.DurationField(null=True, editable=False)
-    error = models.TextField(null=True, editable=False)
     slug = AutoSlugField(
         db_index=True,
         editable=True,
@@ -195,6 +190,11 @@ class AJob(models.Model):
         max_length=SLUG_MAX_LENGTH,
         populate_from=slug_default,
         unique=True)
+    state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
+    status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
+    started = models.DateTimeField(null=True, editable=False)
+    duration = models.DurationField(null=True, editable=False)
+    error = models.TextField(null=True, editable=False)
     closure = models.DateTimeField(
         blank=True,
         null=True,
