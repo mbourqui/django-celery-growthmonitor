@@ -30,6 +30,14 @@ class MetaJob:
         return self._job
 
     def pre_serialization(self):
+        if not self._job_pk:
+            # The job has eventually been saved
+            try:
+                self._job.refresh_from_db()
+                self._job_pk = self._job.pk
+            except self._job.DoesNotExist:
+                raise self._job.DoesNotExist(
+                    "{} has not yet been saved, but its primary key is required".format(self.job)) from None
         self._job = None
         return self
 

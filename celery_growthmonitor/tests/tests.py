@@ -221,6 +221,11 @@ class SerializationTestCase(TestCase):
         # Database is not kept but files would be otherwise
         shutil.rmtree(self.build_path())
 
+    def test_unsaved_job(self):
+        job = models.TestJob()
+        mt = MetaJob(job)
+        self.assertRaises(job.DoesNotExist, mt.pre_serialization)
+
     # def test_json(self):
     #     import json
     #     json.dumps(self.mt.__dict__)
