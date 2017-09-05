@@ -165,9 +165,17 @@ class TasksTestCase(TestCase):
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result[0], MetaJob)
-        self.assertIsInstance(result.result[1], tuple)
-        self.assertEqual(self.job.__str__(), 'TestJob 1 (Completed and Succeeded)')
+        self.assertTrue(hasattr(result.result, 'metajob'))
+        self.assertTrue(hasattr(result.result, 'results'))
+        self.assertIsInstance(result.result.metajob, MetaJob)
+        self.assertIsInstance(result.result.results, tuple)
+        self.assertIs(result.result.metajob, self.mt)
+        self.assertIs(result.result.results, ())
+        mt = result.result.metajob
+        self.assertIsNone(mt.job)
+        self.assertIsNotNone(mt.get_job())
+        self.assertIs(mt.job, mt._job)
+        self.assertEqual(mt.job.__str__(), 'TestJob 1 (Completed and Succeeded)')
 
     def test_identity_task(self):
         workflow = chain(self.mt, tasks.identity_task.s())
@@ -196,3 +204,35 @@ class TasksTestCase(TestCase):
         self.assertIsInstance(result.result.results, tuple)
         self.assertIs(result.result.results[0], True)
         self.assertEqual(result.result.results[1], 2)
+
+
+class SerializationTestCase(TestCase):
+    def setUp(self):
+        self.job = models.TestJob()
+        self.job.save()
+        self.mt = MetaJob(self.job)
+        self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_MEDIA_ROOT)
+
+    def build_path(self, *args):
+        return os.path.join(self.app_root, *args)
+
+    def tearDown(self):
+        import shutil
+        # Database is not kept but files would be otherwise
+        shutil.rmtree(self.build_path())
+
+    # def test_json(self):
+    #     import json
+    #     json.dumps(self.mt.__dict__)
+    #     self.assertIsNone(self.mt._job)
+    #     self.mt.post_serialization()
+    #     self.assertIsNotNone(self.mt._job)
+    #     json.loads(json.dumps(self.mt.pre_serialization()))
+
+    def test_pickle(self):
+        import pickle
+        self.mt.pre_serialization()
+        self.assertIsNone(self.mt._job)
+        self.mt.post_serialization()
+        self.assertIsNotNone(self.mt._job)
+        pickle.loads(pickle.dumps(self.mt.pre_serialization()))

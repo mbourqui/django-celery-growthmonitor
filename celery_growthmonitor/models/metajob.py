@@ -1,81 +1,55 @@
 import logging
-from datetime import datetime
 
 from celery_growthmonitor.models.job import AJob
-from types import SimpleNamespace
 
 logger = logging.getLogger(__name__)
 
 
 class MetaJob:
     """
+    Keep this object as simple as possible, so that it is easily serializable (pickle, json, and so on).
+
     Parameters
     ----------
     job : AJob
     """
 
-    def __init__(self, job):
-        self.job = job
-        self.started = None
-        self.completed = None
-        self.error = None
+    def __init__(self, job: AJob):
+        self._job = job
+        self._job_pk = self._job.pk
+        self._job_app_label = self._job._meta.app_label
+        self._job_class = self._job.__class__.__name__
 
-    def progress(self, new_state):
-        """
-        Signal a change in the pipeline
-
-        Parameters
-        ----------
-        new_state : EStates
-
-        Returns
-        -------
-        AJob.EStates
-            The previous state
-
-        """
-        old_state = self.job.state
-        self.job.state = new_state
-        self.job.save()
-        return old_state
-
-    def start(self):
-        """
-        To be called when the job is to be started
-        """
-        self.progress(AJob.EStates.RUNNING)
-        self.started = datetime.now()
-        logger.debug("Starting {} at {}".format(self.job, self.started))
-
-    def stop(self):
-        """
-        To be called when the job is completed. Can be called multiple times, will only be applied once.
-
-        Returns
-        -------
-        datetime.timedelta
-            Duration of the job
-
-        """
-        if self.completed is None:
-            self.completed = datetime.now()
-            self.job.status = AJob.EStatuses.FAILURE if self.has_failed() else AJob.EStatuses.SUCCESS
-            self.progress(AJob.EStates.COMPLETED)  # This will also save the job
-            logger.debug(
-                "{} terminated in {}s with status '{}'".format(self.job, self.duration, self.job.status.label))
-        return self.duration
-
-    def failed(self, task, exception):
-        self.error = SimpleNamespace(task=task.__name__, exception=exception)
-        # TODO: http://stackoverflow.com/questions/4564559/
-        logger.exception("Task %s failed with following exception: %s", task.__name__, exception)
-
-    def has_failed(self):
-        return bool(self.error)
+    def get_job(self):
+        if not self._job:
+            self.post_serialization()
+        return self.job
 
     @property
-    def duration(self):
-        if not self.job.duration:
-            self.job.duration = self.completed - self.started
-            self.job.save()
-        return self.job.duration
+    def job(self):
+        return self._job
+
+    def pre_serialization(self):
+        self._job = None
+        return self
+
+    def post_serialization(self):
+        from django.apps import apps
+        job_class = apps.get_model(self._job_app_label, self._job_class)
+        self._job = job_class.objects.get(pk=self._job_pk)
+        return self
+
+    def progress(self, new_state):
+        return self.job.progress(new_state)
+
+    def start(self):
+        return self.job.start()
+
+    def stop(self):
+        return self.job.stop()
+
+    def failed(self, task, exception):
+        return self.job.failed(task, exception)
+
+    def has_failed(self):
+        return self.job.has_failed()

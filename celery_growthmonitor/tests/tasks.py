@@ -2,19 +2,20 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 
-from ..workflows.tasks import _compat_return
+from ..models.metajob import MetaJob
+from ..workflows.tasks import ReturnTuple
 
 
 @shared_task
-def identity_task(metajob):
-    return metajob
+def identity_task(metajob: MetaJob):
+    return metajob.pre_serialization()
 
 
 @shared_task
-def constant_task(metajob):
-    return metajob, True
+def constant_task(metajob: MetaJob):
+    return metajob.pre_serialization(), True
 
 
 @shared_task
-def parametric_task(metajob, *args):
-    return _compat_return(metajob, *args)
+def parametric_task(metajob: MetaJob, *args):
+    return ReturnTuple(metajob.pre_serialization(), args)

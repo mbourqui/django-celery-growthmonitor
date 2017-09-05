@@ -2,19 +2,23 @@ from collections import namedtuple
 
 from celery import shared_task
 
+from ..models.metajob import MetaJob
+
 ReturnTuple = namedtuple('ReturnTuple', ['metajob', 'results'])
 
 
-def _compat_return(metajob, *args):
+def _compat_return(metajob: MetaJob, *args):
     return ReturnTuple(metajob, args)
 
 
 def extract_metajob(previous_task_results, *args):
     if isinstance(previous_task_results, ReturnTuple):
-        return _compat_return(previous_task_results.metajob, *(previous_task_results.results + args))
+        return _compat_return(previous_task_results.metajob.post_serialization(),
+                              *(previous_task_results.results + args))
     elif isinstance(previous_task_results, tuple):
-        return _compat_return(previous_task_results[0], *(previous_task_results[1:] + args))
-    return _compat_return(previous_task_results, *args)
+        return _compat_return(previous_task_results[0].post_serialization()
+                              , *(previous_task_results[1:] + args))
+    return _compat_return(previous_task_results.post_serialization(), *args)
 
 
 # ==================================================
@@ -33,9 +37,10 @@ def start(metajob):
     Returns
     -------
     MetaJob
+
     """
     metajob.start()
-    return metajob
+    return metajob.pre_serialization()
 
 
 @shared_task
@@ -56,7 +61,7 @@ def stop(metajob, *args):
     """
     metajob, args = extract_metajob(metajob, *args)
     metajob.stop()
-    return _compat_return(metajob, *args)
+    return _compat_return(metajob.pre_serialization(), *args)
 
 
 # ==================================================
@@ -81,4 +86,4 @@ def remove_old_jobs(metajob, *args):
     candidates = metajob.job.__class__.objects.filter(closure__lt=now())
     for candidate in candidates:
         candidate.delete()
-    return _compat_return(metajob, *args)
+    return _compat_return(metajob.pre_serialization(), *args)

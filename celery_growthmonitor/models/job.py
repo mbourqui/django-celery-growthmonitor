@@ -1,17 +1,22 @@
+import logging
 import os
 import random as rnd
 import re
+from datetime import datetime
 from distutils.version import StrictVersion
 from enum import unique
+from types import SimpleNamespace
 
 from autoslug import AutoSlugField
 from django import get_version as django_version
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from .. import settings
 
+logger = logging.getLogger(__name__)
 TEMPORARY_JOB_FOLDER = 'tmp'
 
 
@@ -180,7 +185,9 @@ class AJob(models.Model):
         validators=[RegexValidator(regex=IDENTIFIER_REGEX)])
     state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
+    started = models.DateTimeField(null=True, editable=False)
     duration = models.DurationField(null=True, editable=False)
+    error = models.TextField(null=True, editable=False)
     slug = AutoSlugField(
         db_index=True,
         editable=True,
@@ -221,7 +228,7 @@ class AJob(models.Model):
         setattr(self, '_tmp_id', 0)
 
     def save(self, *args, results_exist_ok=False, **kwargs):
-        created = not self.id
+        created = not self.pk
         if created and getattr(self, 'required_user_files', []):
             setattr(self, 'upload_to_data', getattr(self, 'upload_to_data', None))
             setattr(self, '_tmp_id', rnd.randrange(10 ** 6, 10 ** 7))
@@ -242,6 +249,90 @@ class AJob(models.Model):
                 super(AJob, self).save()  # Persist file changes
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
             os.makedirs(os.path.join(settings.django_settings.MEDIA_ROOT, job_results(self)), exist_ok=results_exist_ok)
+
+    def progress(self, new_state):
+        """
+        Signal a change in the pipeline
+
+        Parameters
+        ----------
+        new_state : EStates
+
+        Returns
+        -------
+        AJob.EStates
+            The previous state
+
+        """
+        old_state = self.state
+        self.state = new_state
+        self.save()
+        return old_state
+
+    def start(self):
+        """
+        To be called when the job is to be started.
+
+        Returns
+        -------
+        state : EStates
+        status : EStatuses
+        started : datetime
+
+        """
+        self.started = timezone.now()
+        self.progress(AJob.EStates.RUNNING)
+        logger.debug("Starting {} at {}".format(self, self.started))
+        return self.state, self.status, self.started
+
+    def stop(self):
+        """
+        To be called when the job is completed. Can be called multiple times, will only be applied once.
+
+        Returns
+        -------
+        state : EStates
+        status : EStatuses
+        duration : datetime.timedelta
+            Duration of the job
+
+        """
+        self._set_duration()
+        if self.state is not AJob.EStates.COMPLETED:
+            self.status = AJob.EStatuses.FAILURE if self.has_failed() else AJob.EStatuses.SUCCESS
+            self.progress(AJob.EStates.COMPLETED)  # This will also save the job
+            logger.debug(
+                "{} terminated in {}s with status '{}'".format(self, self.duration, self.status.label))
+        return self.state, self.status, self.duration
+
+    def failed(self, task, exception):
+        """
+        Mark the task as failed and stop it.
+
+        Parameters
+        ----------
+        task
+        exception
+
+        Returns
+        -------
+        TODO
+
+        """
+        self._set_duration()
+        self.error = SimpleNamespace(task=task.__name__, exception=exception)
+        # TODO: http://stackoverflow.com/questions/4564559/
+        logger.exception("Task %s failed with following exception: %s", task.__name__, exception)
+        return self.stop()
+
+    def has_failed(self):
+        return bool(self.error)
+
+    def _set_duration(self):
+        if not self.duration:
+            self.duration = timezone.now() - self.started
+            self.save()
+        return self.duration
 
 
 class ADataFile(models.Model):
