@@ -4,20 +4,20 @@ python:
   - 3.5
   - 3.6
 env:
-  - DJANGO_VERSION=1.8
-  - DJANGO_VERSION=1.9
-  - DJANGO_VERSION=1.10
+  - DJANGO_VERSION=1.8.18
+  - DJANGO_VERSION=1.9.13
+  - DJANGO_VERSION=1.10.7
   - DJANGO_VERSION=1.11.2
   - DJANGO_VERSION=1.11.3
-  - DJANGO_VERSION=1.11
+  - DJANGO_VERSION=1.11.4
 # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
 matrix:
   exclude:
-    - env: DJANGO_VERSION=1.8
+    - env: DJANGO_VERSION=1.8.18
       python: 3.6
-    - env: DJANGO_VERSION=1.9
+    - env: DJANGO_VERSION=1.9.13
       python: 3.6
-    - env: DJANGO_VERSION=1.10
+    - env: DJANGO_VERSION=1.10.7
       python: 3.6
 addons:
   apt_packages:
