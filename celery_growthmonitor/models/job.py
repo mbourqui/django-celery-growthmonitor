@@ -5,7 +5,6 @@ import re
 from datetime import datetime
 from distutils.version import StrictVersion
 from enum import unique
-from types import SimpleNamespace
 
 from autoslug import AutoSlugField
 from django import get_version as django_version
@@ -321,7 +320,8 @@ class AJob(models.Model):
         """
         self._set_duration()
         from json import dumps
-        self.error = dumps(dict(task=task.__name__, exception="{}".format(exception)))
+        self.error = dumps(
+            dict(task=task.__name__, exception="{}".format(type(exception).__name__), msg="{}".format(exception)))
         # TODO: http://stackoverflow.com/questions/4564559/
         logger.exception("Task %s failed with following exception: %s", task.__name__, exception)
         return self.stop()

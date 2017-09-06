@@ -9,7 +9,7 @@ from django.test import TestCase
 from celery_growthmonitor.tests import models
 from . import tasks
 from .. import settings
-from ..models import MetaJob
+from ..models import MetaJob, AJob
 from ..workflows import chain
 
 warnings.simplefilter("always")
@@ -204,6 +204,25 @@ class TasksTestCase(TestCase):
         self.assertIsInstance(result.result.results, tuple)
         self.assertIs(result.result.results[0], True)
         self.assertEqual(result.result.results[1], 2)
+
+    def test_failed_task(self):
+        workflow = chain(self.mt, tasks.failing_task.s())
+        result = workflow.apply_async(debug=True)
+        self.assertEqual(result.state, 'SUCCESS')
+        self.assertEqual(result.status, 'SUCCESS')
+        self.assertIsInstance(result.result.metajob, MetaJob)
+        self.assertIsInstance(result.result.results, tuple)
+        mt = result.result.metajob
+        job = mt.get_job()
+        self.assertIs(job.state, AJob.EStates.COMPLETED)
+        self.assertIs(job.status, AJob.EStatuses.FAILURE)
+        self.assertTrue(job.has_failed())
+        from json import loads
+        error = loads(job.error)
+        self.assertTrue('task' in error)
+        self.assertTrue('exception' in error)
+        self.assertTrue('msg' in error)
+        self.assertEqual(error['exception'], RuntimeError.__name__)
 
 
 class SerializationTestCase(TestCase):
