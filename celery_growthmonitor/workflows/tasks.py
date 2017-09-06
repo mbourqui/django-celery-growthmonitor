@@ -12,6 +12,21 @@ def _compat_return(metajob: MetaJob, *args):
 
 
 def extract_metajob(previous_task_results, *args):
+    """
+
+    Parameters
+    ----------
+    previous_task_results
+    args
+
+    Returns
+    -------
+    ReturnTuple
+        metajob : MetaJob
+            post_serialization() has already been called
+        results : tuple
+
+    """
     if isinstance(previous_task_results, ReturnTuple):
         return _compat_return(previous_task_results.metajob.post_serialization(),
                               *(previous_task_results.results + args))
@@ -39,6 +54,7 @@ def start(metajob):
     MetaJob
 
     """
+    metajob.post_serialization()
     metajob.start()
     return metajob.pre_serialization()
 
