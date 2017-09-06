@@ -320,7 +320,8 @@ class AJob(models.Model):
 
         """
         self._set_duration()
-        self.error = SimpleNamespace(task=task.__name__, exception=exception)
+        from json import dumps
+        self.error = dumps(dict(task=task.__name__, exception="{}".format(exception)))
         # TODO: http://stackoverflow.com/questions/4564559/
         logger.exception("Task %s failed with following exception: %s", task.__name__, exception)
         return self.stop()
