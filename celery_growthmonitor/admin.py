@@ -11,7 +11,7 @@ class AJobAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'slug', 'timestamp', 'state', 'status', 'duration', 'closure')
 
 
-class AFieldsForDataFileAdmin(admin.options.InlineModelAdmin):
+class AFieldsForDataFileInlineModelAdmin(admin.options.InlineModelAdmin):
     __metaclass__ = ABCMeta
 
     fields = ('data',)
