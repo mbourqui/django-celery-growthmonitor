@@ -245,6 +245,14 @@ class SerializationTestCase(TestCase):
         mt = MetaJob(job)
         self.assertRaises(job.DoesNotExist, mt.pre_serialization)
 
+    def test_unprepared_job(self):
+        job = models.TestJob()
+        mt = MetaJob(job)
+        job.save()  # mt will still have no _job_pk
+        workflow = chain(mt, tasks.identity_task.s())
+        workflow.apply_async(debug=True)
+        self.assertRaises(job.DoesNotExist, workflow.apply_async, debug=True)
+
     # def test_json(self):
     #     import json
     #     json.dumps(self.mt.__dict__)

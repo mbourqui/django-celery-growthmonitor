@@ -18,7 +18,7 @@ class MetaJob:
         self._job = job
         self._job_pk = self._job.pk
         self._job_app_label = self._job._meta.app_label
-        self._job_class = self._job.__class__.__name__
+        self._job_cls = self._job.__class__.__name__
 
     def get_job(self):
         if not self._job:
@@ -31,7 +31,7 @@ class MetaJob:
 
     def pre_serialization(self):
         if not self._job_pk:
-            # The job has eventually been saved
+            # The job has eventually been saved since instantiation of self
             try:
                 self._job.refresh_from_db()
                 self._job_pk = self._job.pk
@@ -43,7 +43,11 @@ class MetaJob:
 
     def post_serialization(self):
         from django.apps import apps
-        job_class = apps.get_model(self._job_app_label, self._job_class)
+        job_class = apps.get_model(self._job_app_label, self._job_cls)
+        if self._job_pk is None:
+            raise self._job.DoesNotExist("{} may not yet been saved, but its primary key is required. "
+                                         "Did you forgot to call the {} hook before running tasks?".
+                                         format(self.job, self.pre_serialization.__name__))
         self._job = job_class.objects.get(pk=self._job_pk)
         return self
 

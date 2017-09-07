@@ -8,16 +8,19 @@ from ..workflows.tasks import ReturnTuple
 
 @shared_task
 def identity_task(metajob: MetaJob):
+    metajob.post_serialization()
     return metajob.pre_serialization()
 
 
 @shared_task
 def constant_task(metajob: MetaJob):
+    metajob.post_serialization()
     return metajob.pre_serialization(), True
 
 
 @shared_task
 def parametric_task(metajob: MetaJob, *args):
+    metajob.post_serialization()
     return ReturnTuple(metajob.pre_serialization(), args)
 
 
