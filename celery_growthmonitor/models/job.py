@@ -180,12 +180,12 @@ class AJob(models.Model):
         max_length=IDENTIFIER_MAX_LENGTH,
         blank=True,
         db_index=True,
-        help_text=_("human readable identifier, as provided by the submitter"),
+        help_text=_("Human readable identifier, as provided by the submitter"),
         validators=[RegexValidator(regex=IDENTIFIER_REGEX)])
     slug = AutoSlugField(
         db_index=True,
         editable=True,
-        help_text=_("human readable url, must be unique, a default one will be generated if none is given"),
+        help_text=_("Human readable url, must be unique, a default one will be generated if none is given"),
         max_length=SLUG_MAX_LENGTH,
         populate_from=slug_default,
         unique=True)
@@ -198,7 +198,7 @@ class AJob(models.Model):
         blank=True,
         null=True,
         db_index=True,
-        help_text=_("timestamp of removal, will be set automatically on creation if not given")
+        help_text=_("Timestamp of removal, will be set automatically on creation if not given")
     )  # Default is set on save()
 
     def __str__(self):
