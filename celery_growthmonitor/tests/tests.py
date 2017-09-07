@@ -250,7 +250,6 @@ class SerializationTestCase(TestCase):
         mt = MetaJob(job)
         job.save()  # mt will still have no _job_pk
         workflow = chain(mt, tasks.identity_task.s())
-        workflow.apply_async(debug=True)
         self.assertRaises(job.DoesNotExist, workflow.apply_async, debug=True)
 
     # def test_json(self):
