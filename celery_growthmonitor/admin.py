@@ -10,6 +10,9 @@ class AJobAdmin(admin.ModelAdmin):
     readonly_fields = ('timestamp', 'state', 'status', 'duration')
     list_display = ('__str__', 'slug', 'timestamp', 'state', 'status', 'duration', 'closure')
 
+    def has_add_permission(self, request):
+        return False
+
 
 class AFieldsForDataFileInlineModelAdmin(admin.options.InlineModelAdmin):
     __metaclass__ = ABCMeta
