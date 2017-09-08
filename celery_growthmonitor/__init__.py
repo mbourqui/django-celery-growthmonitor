@@ -20,6 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __license__ = 'GNU GPLv3 <https://www.gnu.org/licenses/gpl-3.0.html>'
 __author__ = 'Marc Bourqui <pypi.kemar@bourqui.org>'
-__version__ = '0.0.0.dev36'
+__version__ = '0.0.0.dev37'
 __version_info__ = tuple([int(num) if num.isdigit() else num for num in __version__.replace('-', '.', 1).split('.')])
 __status__ = 'Beta'
