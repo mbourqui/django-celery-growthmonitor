@@ -9,6 +9,7 @@ class AJobAdmin(admin.ModelAdmin):
     fields = ('timestamp', 'identifier', 'state', 'status', 'duration', 'slug', 'closure')
     readonly_fields = ('timestamp', 'state', 'status', 'duration')
     list_display = ('__str__', 'slug', 'timestamp', 'state', 'status', 'duration', 'closure')
+    search_fields = ('identifier', 'slug')
 
     def has_add_permission(self, request):
         return False
