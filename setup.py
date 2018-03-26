@@ -10,8 +10,13 @@ from celery_growthmonitor import __version__
 
 REPO_URL = "https://github.com/mbourqui/django-celery-growthmonitor/"
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst'), encoding='utf-8') as readme:
-    README = readme.read()
+README = ''
+for ext in ['md', 'rst']:
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'README.' + ext)) as readme:
+            README = readme.read()
+    except FileNotFoundError as fnfe:
+        pass
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
