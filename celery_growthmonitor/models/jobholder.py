@@ -5,7 +5,7 @@ from celery_growthmonitor.models.job import AJob
 logger = logging.getLogger(__name__)
 
 
-class MetaJob:
+class JobHolder:
     """
     Keep this object as simple as possible, so that it is easily serializable (pickle, json, and so on).
 
@@ -50,18 +50,3 @@ class MetaJob:
                                          format(self.job, self.pre_serialization.__name__))
         self._job = job_class.objects.get(pk=self._job_pk)
         return self
-
-    def progress(self, new_state):
-        return self.job.progress(new_state)
-
-    def start(self):
-        return self.job.start()
-
-    def stop(self):
-        return self.job.stop()
-
-    def failed(self, task, exception):
-        return self.job.failed(task, exception)
-
-    def has_failed(self):
-        return self.job.has_failed()

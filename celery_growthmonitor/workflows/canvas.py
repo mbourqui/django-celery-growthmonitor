@@ -1,16 +1,16 @@
 from celery.canvas import chain as celery_chain
 
-from celery_growthmonitor.models import MetaJob
+from celery_growthmonitor.models import JobHolder
 from .tasks import start, stop, remove_old_jobs
 
 
-def chain(metajob, *tasks):
+def chain(job_holder, *tasks):
     """
     Build a chain of tasks, adding monitoring and maintenance tasks at the beginning and end of the chain
 
     Parameters
     ----------
-    metajob : MetaJob
+    job_holder : JobHolder
     tasks : celery.shared_task
 
     Returns
@@ -20,14 +20,14 @@ def chain(metajob, *tasks):
     """
     try:
         flow = eval("""(
-            start.s(metajob),
+            start.s(job_holder),
             *tasks,
             stop.s(),
             remove_old_jobs.s(),
         )""")
     except SyntaxError:
         # Python < 3.5
-        flow = (start.s(metajob),)
+        flow = (start.s(job_holder),)
         flow += tuple([task for task in tasks])
         flow += (
             stop.s(),

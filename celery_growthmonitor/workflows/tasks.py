@@ -2,16 +2,16 @@ from collections import namedtuple
 
 from celery import shared_task
 
-from ..models.metajob import MetaJob
+from ..models.jobholder import JobHolder
 
-ReturnTuple = namedtuple('ReturnTuple', ['metajob', 'results'])
-
-
-def _compat_return(metajob: MetaJob, *args):
-    return ReturnTuple(metajob, args)
+ReturnTuple = namedtuple('ReturnTuple', ['job_holder', 'results'])
 
 
-def extract_metajob(previous_task_results, *args):
+def _compat_return(job_holder: JobHolder, *args):
+    return ReturnTuple(job_holder, args)
+
+
+def extract_job_holder(previous_task_results, *args):
     """
 
     Parameters
@@ -22,13 +22,13 @@ def extract_metajob(previous_task_results, *args):
     Returns
     -------
     ReturnTuple
-        metajob : MetaJob
+        job_holder : JobHolder
             post_serialization() has already been called
         results : tuple
 
     """
     if isinstance(previous_task_results, ReturnTuple):
-        return _compat_return(previous_task_results.metajob.post_serialization(),
+        return _compat_return(previous_task_results.job_holder.post_serialization(),
                               *(previous_task_results.results + args))
     elif isinstance(previous_task_results, tuple):
         return _compat_return(previous_task_results[0].post_serialization()
@@ -41,43 +41,43 @@ def extract_metajob(previous_task_results, *args):
 # ==================================================
 
 @shared_task
-def start(metajob):
+def start(job_holder):
     """
     Having a task for starting the job makes sure we measure the right time of running
 
     Parameters
     ----------
-    metajob : MetaJob
+    job_holder : JobHolder
 
     Returns
     -------
-    MetaJob
+    JobHolder
 
     """
-    metajob.post_serialization()
-    metajob.start()
-    return metajob.pre_serialization()
+    job_holder.post_serialization()
+    job_holder.job.start()
+    return job_holder.pre_serialization()
 
 
 @shared_task
-def stop(metajob, *args):
+def stop(job_holder, *args):
     """
     Having a task for stopping the job makes sure we measure the right time of completion (previous task is obviously
     done)
 
     Parameters
     ----------
-    metajob : MetaJob or tuple
+    job_holder : JobHolder or tuple
     args
 
     Returns
     -------
-    MetaJob
+    JobHolder
 
     """
-    metajob, args = extract_metajob(metajob, *args)
-    metajob.stop()
-    return _compat_return(metajob.pre_serialization(), *args)
+    job_holder, args = extract_job_holder(job_holder, *args)
+    job_holder.stop()
+    return _compat_return(job_holder.pre_serialization(), *args)
 
 
 # ==================================================
@@ -85,21 +85,21 @@ def stop(metajob, *args):
 # ==================================================
 
 @shared_task
-def remove_old_jobs(metajob, *args):
+def remove_old_jobs(job_johler, *args):
     """
 
     Parameters
     ----------
-    metajob : MetaJob or tuple
+    job_johler : JobHolder or tuple
     args
 
     Returns
     -------
 
     """
-    metajob, args = extract_metajob(metajob, *args)
+    job_johler, args = extract_job_holder(job_johler, *args)
     from django.utils.timezone import now
-    candidates = metajob.job.__class__.objects.filter(closure__lt=now())
+    candidates = job_johler.job.__class__.objects.filter(closure__lt=now())
     for candidate in candidates:
         candidate.delete()
-    return _compat_return(metajob.pre_serialization(), *args)
+    return _compat_return(job_johler.pre_serialization(), *args)

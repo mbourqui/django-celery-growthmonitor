@@ -9,7 +9,7 @@ from django.test import TestCase
 from celery_growthmonitor.tests import models
 from . import tasks
 from .. import settings
-from ..models import MetaJob, AJob
+from ..models import JobHolder, AJob
 from ..workflows import chain
 
 warnings.simplefilter("always")
@@ -148,7 +148,7 @@ class TasksTestCase(TestCase):
     def setUp(self):
         self.job = models.TestJob()
         self.job.save()
-        self.mt = MetaJob(self.job)
+        self.holder = JobHolder(self.job)
         self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_MEDIA_ROOT)
 
     def build_path(self, *args):
@@ -161,58 +161,58 @@ class TasksTestCase(TestCase):
 
     def test_no_task(self):
         self.assertEqual(self.job.__str__(), 'TestJob 1 (Created and Active)')
-        workflow = chain(self.mt, )
+        workflow = chain(self.holder, )
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertTrue(hasattr(result.result, 'metajob'))
+        self.assertTrue(hasattr(result.result, 'job_holder'))
         self.assertTrue(hasattr(result.result, 'results'))
-        self.assertIsInstance(result.result.metajob, MetaJob)
+        self.assertIsInstance(result.result.job_holder, JobHolder)
         self.assertIsInstance(result.result.results, tuple)
-        self.assertIs(result.result.metajob, self.mt)
+        self.assertIs(result.result.job_holder, self.holder)
         self.assertIs(result.result.results, ())
-        mt = result.result.metajob
+        mt = result.result.job_holder
         self.assertIsNone(mt.job)
         self.assertIsNotNone(mt.get_job())
         self.assertIs(mt.job, mt._job)
         self.assertEqual(mt.job.__str__(), 'TestJob 1 (Completed and Succeeded)')
 
     def test_identity_task(self):
-        workflow = chain(self.mt, tasks.identity_task.s())
+        workflow = chain(self.holder, tasks.identity_task.s())
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result.metajob, MetaJob)
+        self.assertIsInstance(result.result.job_holder, JobHolder)
         self.assertIsInstance(result.result.results, tuple)
 
     def test_constant_task(self):
-        workflow = chain(self.mt, tasks.constant_task.s())
+        workflow = chain(self.holder, tasks.constant_task.s())
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result.metajob, MetaJob)
+        self.assertIsInstance(result.result.job_holder, JobHolder)
         self.assertIsInstance(result.result.results, tuple)
         self.assertIs(result.result[1][0], True)
 
     def test_parametric_task(self):
         args = (True, 2)
-        workflow = chain(self.mt, tasks.parametric_task.s(*args))
+        workflow = chain(self.holder, tasks.parametric_task.s(*args))
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result.metajob, MetaJob)
+        self.assertIsInstance(result.result.job_holder, JobHolder)
         self.assertIsInstance(result.result.results, tuple)
         self.assertIs(result.result.results[0], True)
         self.assertEqual(result.result.results[1], 2)
 
     def test_failed_task(self):
-        workflow = chain(self.mt, tasks.failing_task.s())
+        workflow = chain(self.holder, tasks.failing_task.s())
         result = workflow.apply_async(debug=True)
         self.assertEqual(result.state, 'SUCCESS')
         self.assertEqual(result.status, 'SUCCESS')
-        self.assertIsInstance(result.result.metajob, MetaJob)
+        self.assertIsInstance(result.result.job_holder, JobHolder)
         self.assertIsInstance(result.result.results, tuple)
-        mt = result.result.metajob
+        mt = result.result.job_holder
         job = mt.get_job()
         self.assertIs(job.state, AJob.EStates.COMPLETED)
         self.assertIs(job.status, AJob.EStatuses.FAILURE)
@@ -229,7 +229,7 @@ class SerializationTestCase(TestCase):
     def setUp(self):
         self.job = models.TestJob()
         self.job.save()
-        self.mt = MetaJob(self.job)
+        self.holder = JobHolder(self.job)
         self.app_root = os.path.join(settings.django_settings.MEDIA_ROOT, settings.APP_MEDIA_ROOT)
 
     def build_path(self, *args):
@@ -242,12 +242,12 @@ class SerializationTestCase(TestCase):
 
     def test_unsaved_job(self):
         job = models.TestJob()
-        mt = MetaJob(job)
+        mt = JobHolder(job)
         self.assertRaises(job.DoesNotExist, mt.pre_serialization)
 
     def test_unprepared_job(self):
         job = models.TestJob()
-        mt = MetaJob(job)
+        mt = JobHolder(job)
         job.save()  # mt will still have no _job_pk
         workflow = chain(mt, tasks.identity_task.s())
         self.assertRaises(job.DoesNotExist, workflow.apply_async, debug=True)
@@ -262,8 +262,8 @@ class SerializationTestCase(TestCase):
 
     def test_pickle(self):
         import pickle
-        self.mt.pre_serialization()
-        self.assertIsNone(self.mt._job)
-        self.mt.post_serialization()
-        self.assertIsNotNone(self.mt._job)
-        pickle.loads(pickle.dumps(self.mt.pre_serialization()))
+        self.holder.pre_serialization()
+        self.assertIsNone(self.holder._job)
+        self.holder.post_serialization()
+        self.assertIsNotNone(self.holder._job)
+        pickle.loads(pickle.dumps(self.holder.pre_serialization()))
