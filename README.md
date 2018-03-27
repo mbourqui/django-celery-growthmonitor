@@ -19,10 +19,10 @@ A Django helper to monitor jobs running Celery tasks
 ## Requirements
 
 * [Python][] >= 3.4
-* [Django][] >= 1.8.18
+* [Django][] >= 1.8
 * [Celery][] >= 4.0.2
-* `django-echoices` >=2.5.0
-* `django-autoslug` >=1.9.3
+* [echoices][] >= 2.5.0
+* [autoslugged][] >= 2.0.0
 
 
 ## Installation
@@ -40,6 +40,8 @@ A Django helper to monitor jobs running Celery tasks
 ## Usage
 TODO
 
-  [celery]:     http://www.celeryproject.org/       "Celery"
-  [django]:     https://www.djangoproject.com/      "Django"
   [python]:     https://www.python.org/             "Python"
+  [django]:     https://www.djangoproject.com/      "Django"
+  [celery]:     http://www.celeryproject.org/       "Celery"
+  [echoices]:   https://github.com/mbourqui/django-echoices         "django-echoices"
+  [autoslugged]:    https://github.com/mbourqui/django-autoslugged  "django-autoslugged"
