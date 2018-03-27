@@ -6,7 +6,7 @@ from datetime import datetime
 from distutils.version import StrictVersion
 from enum import unique
 
-from autoslug import AutoSlugField
+from autoslugged import AutoSlugField
 from django import get_version as django_version
 from django.core.validators import RegexValidator
 from django.db import models
