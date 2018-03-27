@@ -167,7 +167,7 @@ class AJob(models.Model):
             slug = self.identifier[:min(len(self.identifier), self.SLUG_RND_LENGTH)]
         else:
             slug = self.__class__.__name__[0]
-        slug += ' ' + self.timestamp.strftime("%y%m%d%H%M")  # YYMMDDHHmm
+        slug += self.timestamp.strftime("%y%m%d%H%M")  # YYMMDDHHmm
         if len(slug) > self.SLUG_MAX_LENGTH:
             slug = slug[:self.SLUG_MAX_LENGTH - self.SLUG_RND_LENGTH] + \
                    str(rnd.randrange(10 ** (self.SLUG_RND_LENGTH - 1), 10 ** self.SLUG_RND_LENGTH))
@@ -187,6 +187,7 @@ class AJob(models.Model):
         editable=True,
         help_text=_("Human readable url, must be unique, a default one will be generated if none is given"),
         max_length=SLUG_MAX_LENGTH,
+        default=slug_default,
         unique=True)
     state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
@@ -227,8 +228,6 @@ class AJob(models.Model):
 
     def save(self, *args, results_exist_ok=False, **kwargs):
         created = not self.pk
-        if not self.slug:
-            self.slug = self.slug_default()
         if created and getattr(self, 'required_user_files', []):
             setattr(self, 'upload_to_data', getattr(self, 'upload_to_data', None))
             setattr(self, '_tmp_id', rnd.randrange(10 ** 6, 10 ** 7))
