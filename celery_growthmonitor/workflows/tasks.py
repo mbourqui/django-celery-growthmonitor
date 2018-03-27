@@ -76,7 +76,7 @@ def stop(job_holder, *args):
 
     """
     job_holder, args = extract_job_holder(job_holder, *args)
-    job_holder.stop()
+    job_holder.job.stop()
     return _compat_return(job_holder.pre_serialization(), *args)
 
 
