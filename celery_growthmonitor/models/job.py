@@ -187,7 +187,7 @@ class AJob(models.Model):
         editable=True,
         help_text=_("Human readable url, must be unique, a default one will be generated if none is given"),
         max_length=SLUG_MAX_LENGTH,
-        default=slug_default,
+        populate_from=slug_default,
         unique=True)
     state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
