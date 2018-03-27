@@ -162,7 +162,7 @@ class AJob(models.Model):
     job_root = None
     upload_to_results = None
 
-    def slugify_default(self):
+    def slug_default(self):
         if self.identifier:
             slug = self.identifier[:min(len(self.identifier), self.SLUG_RND_LENGTH)]
         else:
@@ -227,9 +227,8 @@ class AJob(models.Model):
 
     def save(self, *args, results_exist_ok=False, **kwargs):
         created = not self.pk
-        slugged = self.slug
-        if not slugged:
-            self.slug = self.identifier or 'TEMPSLUG'
+        if not self.slug:
+            self.slug = self.slug_default()
         if created and getattr(self, 'required_user_files', []):
             setattr(self, 'upload_to_data', getattr(self, 'upload_to_data', None))
             setattr(self, '_tmp_id', rnd.randrange(10 ** 6, 10 ** 7))
@@ -241,8 +240,6 @@ class AJob(models.Model):
                     "It looks like you forgot to set the `required_user_files` attribute on {}.".format(
                         self.__class__)) from None
             raise ae
-        if not slugged:
-            self.slug = self.slugify_default()
         if created:
             # Set timeout
             self.closure = self.timestamp + settings.TTL
