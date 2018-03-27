@@ -6,8 +6,8 @@ from datetime import datetime
 from distutils.version import StrictVersion
 from enum import unique
 
+from autoslug import AutoSlugField
 from django import get_version as django_version
-from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
@@ -55,7 +55,7 @@ def root_job(instance):
     else:
         head = instance.__class__.__name__.lower()
     if not instance.id or (
-            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
+                    instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
@@ -172,7 +172,7 @@ class AJob(models.Model):
             slug = slug[:self.SLUG_MAX_LENGTH - self.SLUG_RND_LENGTH] + \
                    str(rnd.randrange(10 ** (self.SLUG_RND_LENGTH - 1), 10 ** self.SLUG_RND_LENGTH))
         # TODO: assert uniqueness, otherwise regen
-        return settings.SLUGIFIER(slug)
+        return slug
 
     timestamp = models.DateTimeField(verbose_name=_("job creation timestamp"), auto_now_add=True)
     # TODO: validate identifier over allowance for slug or [a-zA-Z0-9_]
@@ -182,7 +182,7 @@ class AJob(models.Model):
         db_index=True,
         help_text=_("Human readable identifier, as provided by the submitter"),
         validators=[RegexValidator(regex=IDENTIFIER_REGEX)])
-    slug = models.SlugField(
+    slug = AutoSlugField(
         db_index=True,
         editable=True,
         help_text=_("Human readable url, must be unique, a default one will be generated if none is given"),
