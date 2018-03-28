@@ -6,6 +6,7 @@ from django import forms
 crispy_forms = importlib.util.find_spec('crispy_forms')
 if crispy_forms:
     from crispy_forms.helper import FormHelper
+    from crispy_forms.layout import Layout, Hidden, Submit
 
 
 class ACrispyJobForm(forms.ModelForm):
@@ -21,3 +22,23 @@ class ACrispyJobForm(forms.ModelForm):
             self.helper = FormHelper()
             self.helper.form_tag = False
             self.helper.disable_csrf = True
+
+
+class ACrispyJobSubmissionForm(forms.Form):
+    __metaclass__ = ABCMeta
+
+    # TODO if needed: use identifier from CombineJob
+
+    def __init__(self, *args, add_honeypot=False, **kwargs):
+        super(ACrispyJobSubmissionForm, self).__init__(*args, **kwargs)
+        if crispy_forms:
+            self.helper = FormHelper()
+            self.helper.form_tag = False
+            self.helper.disable_csrf = True
+            if add_honeypot:
+                from django.conf import settings
+                self.helper.add_input(Hidden(settings.HONEYPOT_FIELD_NAME, settings.HONEYPOT_VALUE))
+            self.helper.layout = Layout(
+                # Job identifier could be asked here
+                Submit('submit', 'Submit', css_class="btn-secondary btn-lg float-right", ),
+            )
