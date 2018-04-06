@@ -38,7 +38,11 @@ A Django helper to monitor jobs running Celery tasks
 
 
 ## Usage
-TODO
+
+```DJango
+('state', echoices.fields.make_echoicefield(default=celery_growthmonitor.models.AJob.EStates.CREATED, echoices=celery_growthmonitor.models.AJob.EStates, editable=False)),
+('status', echoices.fields.make_echoicefield(default=celery_growthmonitor.models.AJob.EStatuses.ACTIVE, echoices=celery_growthmonitor.models.AJob.EStatuses, editable=False)),
+```
 
   [python]:     https://www.python.org/             "Python"
   [django]:     https://www.djangoproject.com/      "Django"
