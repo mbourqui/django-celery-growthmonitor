@@ -32,6 +32,6 @@ def chain(job_holder, *tasks):
         flow = (start.s(job_holder),)
         flow += tuple([task for task in tasks])
         flow += (stop.s(),)
-        if settings.TTL > 0:
+        if settings.TTL.seconds > 0:
             flow += (remove_old_jobs.s(),),
     return celery_chain(*flow)

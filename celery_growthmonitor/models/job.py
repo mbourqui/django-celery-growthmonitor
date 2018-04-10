@@ -240,7 +240,7 @@ class AJob(models.Model):
                         self.__class__)) from None
             raise ae
         if created:
-            if settings.TTL > 0:
+            if settings.TTL.seconds > 0:
                 # Set timeout
                 self.closure = self.timestamp + settings.TTL
                 super(AJob, self).save()  # Write closure to DB
