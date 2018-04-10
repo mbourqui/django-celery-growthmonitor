@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 TEMPORARY_JOB_FOLDER = 'tmp'
 
 
-def _user_path(attribute_or_prefix, filename=''):
+def user_path(attribute_or_prefix, filename=''):
     if attribute_or_prefix:
         if callable(attribute_or_prefix):
             # It's a callable attribute
@@ -98,7 +98,7 @@ def job_data(instance, filename=''):
         Path to filename which is unique for a job
     """
     head = root_job(instance.job) if isinstance(instance, ADataFile) else root_job(instance)
-    tail = _user_path(instance.upload_to_data, filename) or os.path.join('data', filename)
+    tail = user_path(instance.upload_to_data, filename) or os.path.join('data', filename)
     return os.path.join(head, tail)
 
 
@@ -118,7 +118,7 @@ def job_results(instance, filename=''):
     str
         Path to filename which is unique for a job
     """
-    tail = _user_path(instance.upload_to_results, filename) or os.path.join('results', filename)
+    tail = user_path(instance.upload_to_results, filename) or os.path.join('results', filename)
     return os.path.join(root_job(instance), tail)
 
 
