@@ -55,7 +55,7 @@ def root_job(instance):
     else:
         head = instance.__class__.__name__.lower()
     if not instance.id or (
-                    instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
+            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
@@ -240,9 +240,10 @@ class AJob(models.Model):
                         self.__class__)) from None
             raise ae
         if created:
-            # Set timeout
-            self.closure = self.timestamp + settings.TTL
-            super(AJob, self).save()  # Write closure to DB
+            if settings.TTL > 0:
+                # Set timeout
+                self.closure = self.timestamp + settings.TTL
+                super(AJob, self).save()  # Write closure to DB
             if getattr(self, 'required_user_files', []):
                 self._move_data_from_tmp_to_upload()
                 super(AJob, self).save()  # Persist file changes

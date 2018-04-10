@@ -3,6 +3,8 @@ from celery.canvas import chain as celery_chain
 from celery_growthmonitor.models import JobHolder
 from .tasks import start, stop, remove_old_jobs
 
+from .. import settings
+
 
 def chain(job_holder, *tasks):
     """
@@ -29,8 +31,7 @@ def chain(job_holder, *tasks):
         # Python < 3.5
         flow = (start.s(job_holder),)
         flow += tuple([task for task in tasks])
-        flow += (
-            stop.s(),
-            remove_old_jobs.s(),
-        )
+        flow += (stop.s(),)
+        if settings.TTL > 0:
+            flow += (remove_old_jobs.s(),),
     return celery_chain(*flow)
