@@ -44,6 +44,33 @@ A Django helper to monitor jobs running Celery tasks
 ('status', echoices.fields.make_echoicefield(default=celery_growthmonitor.models.AJob.EStatuses.ACTIVE, echoices=celery_growthmonitor.models.AJob.EStatuses, editable=False)),
 ```
 
+```Django
+from .celery import app
+
+@app.task
+def my_task(holder: JobHolder, *args):
+    job = holder.get_job()
+    # Some processing
+    return holder.pre_serialization()
+```
+
+### Helpers
+
+#### Admin
+
+```Django
+from django.contrib import admin
+
+from celery_growthmonitor.admin import AJobAdmin
+
+@admin.register(MyJob)
+class MyJobAdmin(AJobAdmin):
+    fields = AJobAdmin.fields + ('my_extra_field',)
+    readonly_fields = AJobAdmin.readonly_fields + ('my_extra_field',)
+
+```
+
+
   [python]:     https://www.python.org/             "Python"
   [django]:     https://www.djangoproject.com/      "Django"
   [celery]:     http://www.celeryproject.org/       "Celery"
