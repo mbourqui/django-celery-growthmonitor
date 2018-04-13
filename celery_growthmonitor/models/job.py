@@ -67,7 +67,8 @@ def job_data(instance, filename=''):
     str
         Path to filename which is unique for a job
     """
-    head = job_root(instance.job) if isinstance(instance, ADataFile) else job_root(instance)
+    job = instance if isinstance(instance, AJob) else instance.job
+    head = job.upload_to_root()
     tail = os.path.join('data', filename)
     return os.path.join(head, tail)
 
@@ -78,7 +79,7 @@ def job_results(instance, filename=''):
 
     Parameters
     ----------
-    instance : AJob
+    instance : AJob or ADataFile
         The model instance associated
     filename : str
         Original filename
@@ -88,8 +89,10 @@ def job_results(instance, filename=''):
     str
         Path to filename which is unique for a job
     """
+    job = instance if isinstance(instance, AJob) else instance.job
+    head = job.upload_to_root()
     tail = os.path.join('results', filename)
-    return os.path.join(job_root(instance), tail)
+    return os.path.join(head, tail)
 
 
 def get_upload_to_path(instance, callable_or_prefix, filename=''):
@@ -113,7 +116,8 @@ def get_upload_to_path(instance, callable_or_prefix, filename=''):
         return callable_or_prefix(filename)
     else:
         # It's a prefix
-        return os.path.join(job_root(instance), callable_or_prefix, filename)
+        job = instance if isinstance(instance, AJob) else instance.job
+        return os.path.join(job.upload_to_root(), callable_or_prefix, filename)
 
 
 def get_absolute_path(instance, callable_or_prefix, filename=''):
