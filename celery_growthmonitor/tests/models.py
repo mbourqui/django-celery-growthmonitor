@@ -52,7 +52,7 @@ class ACompatDataFile(ADataFile):
 
     from django import get_version as django_version
     from distutils.version import StrictVersion
-    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+    if StrictVersion('1.10.0') <= StrictVersion(django_version()):
         data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
