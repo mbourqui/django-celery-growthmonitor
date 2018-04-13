@@ -19,21 +19,7 @@ logger = logging.getLogger(__name__)
 TEMPORARY_JOB_FOLDER = 'tmp'
 
 
-def user_path(attribute_or_prefix, filename=''):
-    if attribute_or_prefix:
-        if callable(attribute_or_prefix):
-            # It's a callable attribute
-            co_code = attribute_or_prefix.__code__.co_code
-            if co_code != job_data.__code__.co_code and co_code != job_results.__code__.co_code:
-                # Prevent infinite recursion if using job_data(...) or job_results(...)
-                return attribute_or_prefix(filename)
-        else:
-            # It's a prefix
-            return os.path.join(attribute_or_prefix, filename)
-    return None
-
-
-def root_job(instance):
+def root_job(instance, filename=''):
     """
     Return the root path in the filesystem for the job `instance` folder.
 
@@ -41,6 +27,8 @@ def root_job(instance):
     ----------
     instance : AJob
         The model instance associated with the file
+    filename : str
+        Original filename
 
     Returns
     --------
@@ -59,26 +47,7 @@ def root_job(instance):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
-    return os.path.join(settings.APP_MEDIA_ROOT, head, tail)
-
-
-def job_root(instance, filename=''):
-    """
-    Return the path of `filename` stored at the root folder of his job `instance`.
-
-    Parameters
-    ----------
-    instance : AJob
-        The model instance associated
-    filename : str
-        Original filename
-
-    Returns
-    --------
-    str
-        Path to filename which is unique for a job
-    """
-    return os.path.join(root_job(instance), filename)
+    return os.path.join(settings.APP_MEDIA_ROOT, head, tail, filename)
 
 
 def job_data(instance, filename=''):
@@ -98,7 +67,7 @@ def job_data(instance, filename=''):
         Path to filename which is unique for a job
     """
     head = root_job(instance.job) if isinstance(instance, ADataFile) else root_job(instance)
-    tail = user_path(instance.upload_to_data, filename) or os.path.join('data', filename)
+    tail = os.path.join('data', filename)
     return os.path.join(head, tail)
 
 
@@ -118,8 +87,51 @@ def job_results(instance, filename=''):
     str
         Path to filename which is unique for a job
     """
-    tail = user_path(instance.upload_to_results, filename) or os.path.join('results', filename)
+    tail = os.path.join('results', filename)
     return os.path.join(root_job(instance), tail)
+
+
+def get_upload_to_path(instance, callable_or_prefix, filename=''):
+    """
+
+    Parameters
+    ----------
+    instance : AJob or ADataFile
+        The model instance associated
+    callable_or_prefix
+    filename : str
+
+    Returns
+    -------
+    str
+        Path as would be provided to the `upload_to` parameter
+
+    """
+    if callable(callable_or_prefix):
+        # It's a callable attribute
+        return callable_or_prefix(filename)
+    else:
+        # It's a prefix
+        return os.path.join(root_job(instance), callable_or_prefix, filename)
+
+
+def get_absolute_path(instance, callable_or_prefix, filename=''):
+    """
+
+    Parameters
+    ----------
+    instance : AJob or ADataFile
+        The model instance associated
+    callable_or_prefix
+    filename : str
+
+    Returns
+    -------
+    str
+        Absolute path to the file
+
+    """
+    return os.path.join(settings.django_settings.MEDIA_ROOT, get_upload_to_path(instance, callable_or_prefix, filename))
 
 
 class AJob(models.Model):
@@ -159,8 +171,9 @@ class AJob(models.Model):
     SLUG_MAX_LENGTH = 32
     SLUG_RND_LENGTH = 6
 
+    root_job = root_job
     job_root = None
-    upload_to_results = None
+    upload_to_results = job_results
 
     def slug_default(self):
         if self.identifier:
@@ -223,7 +236,7 @@ class AJob(models.Model):
             file.storage.delete(old_filename)
             getattr(self, '_tmp_files').remove(field)
         import shutil
-        shutil.rmtree(os.path.join(settings.django_settings.MEDIA_ROOT, root_job(self)))
+        shutil.rmtree(get_absolute_path(self, self.root_job))
         setattr(self, '_tmp_id', 0)
 
     def save(self, *args, results_exist_ok=False, **kwargs):
@@ -248,7 +261,7 @@ class AJob(models.Model):
                 self._move_data_from_tmp_to_upload()
                 super(AJob, self).save()  # Persist file changes
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
-            os.makedirs(os.path.join(settings.django_settings.MEDIA_ROOT, job_results(self)), exist_ok=results_exist_ok)
+            os.makedirs(get_absolute_path(self, self.upload_to_results), exist_ok=results_exist_ok)
 
     def progress(self, new_state):
         """
@@ -341,7 +354,7 @@ class ADataFile(models.Model):
     class Meta:
         abstract = True
 
-    upload_to_data = None
+    upload_to_data = job_data
 
     job = None  # Just a placeholder for IDEs
     data = None  # Just a placeholder for IDEs
@@ -352,4 +365,4 @@ class ADataFile(models.Model):
         data = None  # Just a placeholder, Django  < 1.10 does not support overriding Fields of abstract models
     else:
         job = models.ForeignKey(AJob, on_delete=models.CASCADE)  # placeholder, must be overridden by concrete class
-        data = models.FileField(upload_to=job_data, max_length=256)
+        data = models.FileField(upload_to=upload_to_data, max_length=256)

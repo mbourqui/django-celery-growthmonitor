@@ -99,11 +99,12 @@ class JobTestCase(TestCase):
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
         #
-        expected_path = self.build_path('testjob', '1', 'my_data_str', 'foobar.txt')
-        self.assertFalse(os.path.exists(expected_path))
-        annotation = models.MyDataStrTestFile(job=test_job, data=test_file)
-        annotation.save()
-        self.assertTrue(os.path.exists(expected_path))
+        # Not supported anymore
+        # expected_path = self.build_path('testjob', '1', 'my_data_str', 'foobar.txt')
+        # self.assertFalse(os.path.exists(expected_path))
+        # annotation = models.MyDataStrTestFile(job=test_job, data=test_file)
+        # annotation.save()
+        # self.assertTrue(os.path.exists(expected_path))
         #
         expected_path = self.build_path('testjob', '1', 'my_data_func', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))

@@ -17,4 +17,5 @@ if not isinstance(TTL, timedelta):
 Time to live. After that time, jobs should be dropped from file system.
 """
 
+# Custom prefix in the media root folder
 APP_MEDIA_ROOT = getattr(django_settings, '{}_MEDIA_ROOT'.format(appConfig.name.upper()), '')

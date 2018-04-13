@@ -1,6 +1,6 @@
 from django.db import models
 
-from celery_growthmonitor.models import AJob, ADataFile, job_data, job_results
+from celery_growthmonitor.models import AJob, ADataFile, root_job, job_data, job_results
 
 
 class TestJob(AJob):
@@ -30,7 +30,7 @@ class MyResultsStrTestJob(AJob):
 
 def my_job_results(instance, filename):
     import os
-    return os.path.join('my_results_func', str(instance.pk), filename)
+    return os.path.join(root_job(instance), 'my_results_func', str(instance.pk), filename)
 
 
 class MyResultsFuncTestJob(AJob):
@@ -53,26 +53,27 @@ class ACompatDataFile(ADataFile):
     from django import get_version as django_version
     from distutils.version import StrictVersion
     if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
-        data = models.FileField(upload_to=job_data, max_length=256)
+        data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
 class TestFile(ACompatDataFile):
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
 
-
-class MyDataStrTestFile(ACompatDataFile):
-    upload_to_data = 'my_data_str'
-    job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
+# Not supported anymore
+# class MyDataStrTestFile(ACompatDataFile):
+#     upload_to_data = 'my_data_str'
+#     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
 
 
 def my_job_data(instance, filename):
     import os
-    return os.path.join('my_data_func', filename)
+    return os.path.join(root_job(instance.job), 'my_data_func', filename)
 
 
 class MyDataFuncTestFile(ACompatDataFile):
     upload_to_data = my_job_data
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
+    data = models.FileField(upload_to=upload_to_data, max_length=256)
 
 
 class JobDataFuncTestFile(ACompatDataFile):
@@ -87,6 +88,7 @@ class MyRootFuncTestFile(ACompatDataFile):
 class MyRootDataFuncTestFile(ACompatDataFile):
     upload_to_data = my_job_data
     job = models.ForeignKey(MyRootFuncTestJob, on_delete=models.CASCADE)
+    data = models.FileField(upload_to=upload_to_data, max_length=256)
 
 
 class TestJobWithRequiredFile(AJob):
