@@ -1,3 +1,6 @@
+from distutils.version import StrictVersion
+
+from django import get_version as django_version
 from django.db import models
 
 from celery_growthmonitor.models import AJob, ADataFile, root_job, job_data, job_results
@@ -50,14 +53,15 @@ class ACompatDataFile(ADataFile):
     class Meta:
         abstract = True
 
-    from django import get_version as django_version
-    from distutils.version import StrictVersion
     if StrictVersion('1.10.0') <= StrictVersion(django_version()):
         data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
 class TestFile(ACompatDataFile):
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
+    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+        data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
+
 
 # Not supported anymore
 # class MyDataStrTestFile(ACompatDataFile):
@@ -79,10 +83,14 @@ class MyDataFuncTestFile(ACompatDataFile):
 class JobDataFuncTestFile(ACompatDataFile):
     upload_to_data = job_data
     job = models.ForeignKey(TestJobTwo, on_delete=models.CASCADE)
+    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+        data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
 class MyRootFuncTestFile(ACompatDataFile):
     job = models.ForeignKey(MyRootFuncTestJob, on_delete=models.CASCADE)
+    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+        data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
 class MyRootDataFuncTestFile(ACompatDataFile):
