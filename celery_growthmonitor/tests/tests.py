@@ -85,14 +85,15 @@ class JobTestCase(TestCase):
         # Base case
         test_job = models.TestJob()
         test_job.save()
-        test_job_two = models.TestJobTwo()
-        test_job_two.save()
         expected_path = self.build_path('testjob', '1', 'data', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.TestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
+        self.assertTrue(os.path.isfile(expected_path))
         #
+        test_job_two = models.TestJobTwo()
+        test_job_two.save()
         expected_path = self.build_path('testjobtwo', '1', 'data', 'foobar.txt')
         self.assertFalse(os.path.exists(expected_path))
         annotation = models.JobDataFuncTestFile(job=test_job_two, data=test_file)
@@ -111,6 +112,12 @@ class JobTestCase(TestCase):
         annotation = models.MyDataFuncTestFile(job=test_job, data=test_file)
         annotation.save()
         self.assertTrue(os.path.exists(expected_path))
+        #
+        self.assertEqual(test_job.delete(),
+                         (3, {'tests.MyDataFuncTestFile': 1, 'tests.TestFile': 1, 'tests.TestJob': 1}))
+        self.assertFalse(os.path.exists(expected_path))
+        self.assertFalse(os.path.exists(self.build_path('testjob', '1')))
+        self.assertTrue(os.path.exists(self.build_path('testjob')))
         #
         #
         test_job = models.MyRootFuncTestJob()
@@ -143,6 +150,12 @@ class JobTestCase(TestCase):
         self.assertTrue(os.path.exists(expected_sample_path))
         self.assertTrue(os.path.exists(expected_other_path))
         # TODO: test file path in test_job
+        #
+        self.assertEqual(test_job.delete(), (1, {'tests.TestJobWithRequiredFile': 1}))
+        self.assertFalse(os.path.exists(expected_sample_path))
+        self.assertFalse(os.path.exists(expected_other_path))
+        self.assertFalse(os.path.exists(self.build_path('testjobwithrequiredfile', '1')))
+        self.assertTrue(os.path.exists(self.build_path('testjobwithrequiredfile')))
 
 
 class TasksTestCase(TestCase):

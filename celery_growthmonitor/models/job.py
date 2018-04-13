@@ -10,6 +10,7 @@ from autoslugged import AutoSlugField
 from django import get_version as django_version
 from django.core.validators import RegexValidator
 from django.db import models
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
@@ -171,6 +172,8 @@ class AJob(models.Model):
     SLUG_MAX_LENGTH = 32
     SLUG_RND_LENGTH = 6
 
+    REQUIRED_USER_FILES_ATTRNAME = 'required_user_files'
+
     root_job = root_job
     job_root = None
     upload_to_results = job_results
@@ -220,8 +223,8 @@ class AJob(models.Model):
     def _move_data_from_tmp_to_upload(self):
         # https://stackoverflow.com/a/16574947/
         # TODO: assert required_user_files is not empty? --> user warning?
-        setattr(self, '_tmp_files', list(getattr(self, 'required_user_files')))
-        for field in self.required_user_files:
+        setattr(self, '_tmp_files', list(getattr(self, self.REQUIRED_USER_FILES_ATTRNAME)))
+        for field in getattr(self, self.REQUIRED_USER_FILES_ATTRNAME):
             file = getattr(self, field) if isinstance(field, str) else getattr(self, field.attname)
             if not file:
                 raise FileNotFoundError("{} is indicated as required, but no file could be found".format(field))
@@ -366,3 +369,28 @@ class ADataFile(models.Model):
     else:
         job = models.ForeignKey(AJob, on_delete=models.CASCADE)  # placeholder, must be overridden by concrete class
         data = models.FileField(upload_to=upload_to_data, max_length=256)
+
+
+@receiver(models.signals.post_delete, )
+def _autoremove_files(sender, instance, *args, **kwargs):
+    """
+    Make sure we remove the files form the filesystem.
+
+    Parameters
+    ----------
+    sender
+    instance
+    args
+    kwargs
+
+    """
+    if issubclass(sender, AJob):
+        if hasattr(instance, instance.REQUIRED_USER_FILES_ATTRNAME):
+            for field in getattr(instance, instance.REQUIRED_USER_FILES_ATTRNAME):
+                file = getattr(instance, field) if isinstance(field, str) else getattr(instance, field.attname)
+                file.delete(save=False)
+        # Delete all remaining files stored on the filesystem
+        import shutil
+        shutil.rmtree(get_absolute_path(instance, instance.root_job))
+    elif issubclass(sender, ADataFile):
+        instance.data.delete(save=False)
