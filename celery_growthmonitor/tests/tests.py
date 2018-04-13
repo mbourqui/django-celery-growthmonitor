@@ -44,7 +44,7 @@ class JobTestCase(TestCase):
         test_job.save()
         self.assertTrue(os.path.isdir(expected_path))
         #
-        expected_path = self.build_path(models.MyRootStrTestJob.job_root, '1', 'results')
+        expected_path = self.build_path(models.MyRootStrTestJob.root_job, '1', 'results')
         self.assertFalse(os.path.isdir(expected_path))
         test_job = models.MyRootStrTestJob()
         test_job.save()

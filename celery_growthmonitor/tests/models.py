@@ -3,7 +3,7 @@ from distutils.version import StrictVersion
 from django import get_version as django_version
 from django.db import models
 
-from celery_growthmonitor.models import AJob, ADataFile, root_job, job_data, job_results
+from celery_growthmonitor.models import AJob, ADataFile, job_root, job_data, job_results
 
 
 class TestJob(AJob):
@@ -15,7 +15,7 @@ class TestJobTwo(AJob):
 
 
 class MyRootStrTestJob(AJob):
-    job_root = 'my_root_str'
+    root_job = 'my_root_str'
 
 
 def my_job_root(instance):
@@ -24,7 +24,7 @@ def my_job_root(instance):
 
 
 class MyRootFuncTestJob(AJob):
-    job_root = my_job_root
+    root_job = my_job_root
 
 
 class MyResultsStrTestJob(AJob):
@@ -33,7 +33,7 @@ class MyResultsStrTestJob(AJob):
 
 def my_job_results(instance, filename):
     import os
-    return os.path.join(root_job(instance), 'my_results_func', str(instance.pk), filename)
+    return os.path.join(job_root(instance), 'my_results_func', str(instance.pk), filename)
 
 
 class MyResultsFuncTestJob(AJob):
@@ -45,7 +45,7 @@ class JobResultsFuncTestJob(AJob):
 
 
 class MyRootResultsFuncTestJob(AJob):
-    job_root = my_job_root
+    root_job = my_job_root
     upload_to_results = my_job_results
 
 
@@ -71,7 +71,7 @@ class TestFile(ACompatDataFile):
 
 def my_job_data(instance, filename):
     import os
-    return os.path.join(root_job(instance.job), 'my_data_func', filename)
+    return os.path.join(job_root(instance.job), 'my_data_func', filename)
 
 
 class MyDataFuncTestFile(ACompatDataFile):
