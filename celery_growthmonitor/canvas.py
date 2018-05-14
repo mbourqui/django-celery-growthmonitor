@@ -1,9 +1,8 @@
 from celery.canvas import chain as celery_chain
 
-from celery_growthmonitor.models import JobHolder
-from .tasks import start, stop, remove_old_jobs
-
+from celery_growthmonitor.tasks import remove_old_jobs, start, stop
 from . import settings
+from .models import JobHolder
 
 
 def chain(job_holder, *tasks):
