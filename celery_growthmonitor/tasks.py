@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from celery import shared_task
 
-from ..models.jobholder import JobHolder
+from .models.jobholder import JobHolder
 
 ReturnTuple = namedtuple('ReturnTuple', ['job_holder', 'results'])
 

@@ -10,7 +10,7 @@ from celery_growthmonitor.tests import models
 from . import tasks
 from .. import settings
 from ..models import JobHolder, AJob
-from ..workflows import chain
+from ..canvas import chain
 
 warnings.simplefilter("always")
 

@@ -3,7 +3,7 @@ from celery.canvas import chain as celery_chain
 from celery_growthmonitor.models import JobHolder
 from .tasks import start, stop, remove_old_jobs
 
-from .. import settings
+from . import settings
 
 
 def chain(job_holder, *tasks):
