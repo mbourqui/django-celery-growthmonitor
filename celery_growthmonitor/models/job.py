@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import logging
 import os
 import random as rnd
@@ -6,7 +8,6 @@ from datetime import datetime
 from distutils.version import StrictVersion
 from enum import unique
 
-from autoslugged import AutoSlugField
 from django import get_version as django_version
 from django.core.validators import RegexValidator
 from django.db import models
@@ -44,7 +45,7 @@ def job_root(instance, filename=''):
     else:
         head = instance.__class__.__name__.lower()
     if not instance.id or (
-            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
+                    instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
@@ -151,6 +152,7 @@ class AJob(models.Model):
     http://stackoverflow.com/questions/16655097/django-abstract-models-versus-regular-inheritance#16838663
     """
 
+    from autoslugged import AutoSlugField
     from echoices.enums import EChoice
     from echoices.fields import make_echoicefield
 

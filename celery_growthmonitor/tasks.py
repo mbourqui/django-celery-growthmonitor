@@ -87,21 +87,21 @@ def stop(job_holder, *args):
 # ==================================================
 
 @shared_task
-def remove_old_jobs(job_johler, *args):
+def remove_old_jobs(job_holder, *args):
     """
 
     Parameters
     ----------
-    job_johler : JobHolder or tuple
+    job_holder : JobHolder or tuple
     args
 
     Returns
     -------
 
     """
-    job_johler, args = extract_job_holder(job_johler, *args)
+    job_holder, args = extract_job_holder(job_holder, *args)
     from django.utils.timezone import now
-    candidates = job_johler.job.__class__.objects.filter(closure__lt=now())
+    candidates = job_holder.job.__class__.objects.filter(closure__lt=now())
     for candidate in candidates:
         candidate.delete()
-    return _compat_return(job_johler.pre_serialization(), *args)
+    return _compat_return(job_holder.pre_serialization(), *args)
