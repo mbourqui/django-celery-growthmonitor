@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 
 from ..models.jobholder import JobHolder
-from ..workflows.tasks import ReturnTuple
+from ..tasks import ReturnTuple
 
 
 @shared_task

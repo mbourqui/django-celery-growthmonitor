@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import logging
 import os
 import random as rnd
@@ -6,7 +8,6 @@ from datetime import datetime
 from distutils.version import StrictVersion
 from enum import unique
 
-from autoslugged import AutoSlugField
 from django import get_version as django_version
 from django.core.validators import RegexValidator
 from django.db import models
@@ -20,9 +21,9 @@ logger = logging.getLogger(__name__)
 TEMPORARY_JOB_FOLDER = 'tmp'
 
 
-def root_job(instance, filename=''):
+def job_root(instance, filename=''):
     """
-    Return the root path in the filesystem for the job `instance` folder.
+    Return the path of `filename` stored at the root folder of his job `instance`.
 
     Parameters
     ----------
@@ -36,15 +37,15 @@ def root_job(instance, filename=''):
     str
         Path to the root folder for that job
     """
-    if instance.job_root:
-        if callable(instance.job_root):
-            return os.path.join(settings.APP_MEDIA_ROOT, instance.job_root())
+    if instance.root_job:
+        if callable(instance.root_job):
+            return os.path.join(settings.APP_MEDIA_ROOT, instance.root_job())
         else:
-            head = str(instance.job_root)
+            head = str(instance.root_job)
     else:
         head = instance.__class__.__name__.lower()
     if not instance.id or (
-            instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
+                    instance.id and getattr(instance, '_tmp_id', None) and not getattr(instance, '_tmp_files', None)):
         tail = os.path.join(TEMPORARY_JOB_FOLDER, str(getattr(instance, '_tmp_id')))
     else:
         tail = str(instance.id)
@@ -67,7 +68,8 @@ def job_data(instance, filename=''):
     str
         Path to filename which is unique for a job
     """
-    head = root_job(instance.job) if isinstance(instance, ADataFile) else root_job(instance)
+    job = instance if isinstance(instance, AJob) else instance.job
+    head = job.upload_to_root()
     tail = os.path.join('data', filename)
     return os.path.join(head, tail)
 
@@ -78,7 +80,7 @@ def job_results(instance, filename=''):
 
     Parameters
     ----------
-    instance : AJob
+    instance : AJob or ADataFile
         The model instance associated
     filename : str
         Original filename
@@ -88,8 +90,10 @@ def job_results(instance, filename=''):
     str
         Path to filename which is unique for a job
     """
+    job = instance if isinstance(instance, AJob) else instance.job
+    head = job.upload_to_root()
     tail = os.path.join('results', filename)
-    return os.path.join(root_job(instance), tail)
+    return os.path.join(head, tail)
 
 
 def get_upload_to_path(instance, callable_or_prefix, filename=''):
@@ -113,7 +117,8 @@ def get_upload_to_path(instance, callable_or_prefix, filename=''):
         return callable_or_prefix(filename)
     else:
         # It's a prefix
-        return os.path.join(root_job(instance), callable_or_prefix, filename)
+        job = instance if isinstance(instance, AJob) else instance.job
+        return os.path.join(job.upload_to_root(), callable_or_prefix, filename)
 
 
 def get_absolute_path(instance, callable_or_prefix, filename=''):
@@ -137,11 +142,17 @@ def get_absolute_path(instance, callable_or_prefix, filename=''):
 
 class AJob(models.Model):
     """
-    See Also
+
+    Set `root_job` to define a custom root path (str or callable).
+    Set `upload_to_root` to define a custom path to the root folder of the job (str or callable).
+    Set `upload_to_results` to define a custom path to the results sub-folder of the job (str or callable).
+    Set ``REQUIRED_USER_FILES_ATTRNAME`` to define mandatory files uploaded with this job (or use ADataFile if multiple)
+
     --------
     http://stackoverflow.com/questions/16655097/django-abstract-models-versus-regular-inheritance#16838663
     """
 
+    from autoslugged import AutoSlugField
     from echoices.enums import EChoice
     from echoices.fields import make_echoicefield
 
@@ -174,8 +185,8 @@ class AJob(models.Model):
 
     REQUIRED_USER_FILES_ATTRNAME = 'required_user_files'
 
-    root_job = root_job
-    job_root = None
+    root_job = None
+    upload_to_root = job_root
     upload_to_results = job_results
 
     def slug_default(self):
@@ -239,7 +250,7 @@ class AJob(models.Model):
             file.storage.delete(old_filename)
             getattr(self, '_tmp_files').remove(field)
         import shutil
-        shutil.rmtree(get_absolute_path(self, self.root_job))
+        shutil.rmtree(get_absolute_path(self, self.upload_to_root))
         setattr(self, '_tmp_id', 0)
 
     def save(self, *args, results_exist_ok=False, **kwargs):
@@ -391,6 +402,6 @@ def _autoremove_files(sender, instance, *args, **kwargs):
                 file.delete(save=False)
         # Delete all remaining files stored on the filesystem
         import shutil
-        shutil.rmtree(get_absolute_path(instance, instance.root_job))
+        shutil.rmtree(get_absolute_path(instance, instance.upload_to_root))
     elif issubclass(sender, ADataFile):
         instance.data.delete(save=False)

@@ -1,12 +1,13 @@
+from __future__ import absolute_import, unicode_literals
+
 from celery.canvas import chain as celery_chain
 
+from celery_growthmonitor import settings
 from celery_growthmonitor.models import JobHolder
-from .tasks import start, stop, remove_old_jobs
-
-from .. import settings
+from celery_growthmonitor.tasks import remove_old_jobs, start, stop
 
 
-def chain(job_holder, *tasks):
+def chain(job_holder: JobHolder, *tasks):
     """
     Build a chain of tasks, adding monitoring and maintenance tasks at the beginning and end of the chain
 
