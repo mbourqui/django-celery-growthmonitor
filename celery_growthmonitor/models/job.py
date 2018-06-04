@@ -276,7 +276,7 @@ class AJob(models.Model):
 
         Returns
         -------
-        AJob.EStates
+        EStates
             The previous state
 
         """
@@ -297,7 +297,7 @@ class AJob(models.Model):
 
         """
         self.started = timezone.now()
-        self.progress(AJob.EStates.RUNNING)
+        self.progress(self.EStates.RUNNING)
         logger.debug("Starting {} at {}".format(self, self.started))
         return self.state, self.status, self.started
 
@@ -314,9 +314,9 @@ class AJob(models.Model):
 
         """
         self._set_duration()
-        if self.state is not AJob.EStates.COMPLETED:
-            self.status = AJob.EStatuses.FAILURE if self.has_failed() else AJob.EStatuses.SUCCESS
-            self.progress(AJob.EStates.COMPLETED)  # This will also save the job
+        if self.state is not self.EStates.COMPLETED:
+            self.status = self.EStatuses.FAILURE if self.has_failed() else self.EStatuses.SUCCESS
+            self.progress(self.EStates.COMPLETED)  # This will also save the job
             logger.debug(
                 "{} terminated in {}s with status '{}'".format(self, self.duration, self.status.label))
         return self.state, self.status, self.duration
