@@ -220,13 +220,13 @@ class AJob(models.Model):
     status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
     started = models.DateTimeField(null=True, editable=False)
     duration = models.DurationField(null=True, editable=False)
-    error = models.TextField(null=True, editable=False)
     closure = models.DateTimeField(
         blank=True,
         null=True,
         db_index=True,
         help_text=_("Timestamp of removal, will be set automatically on creation if not given")
     )  # Default is set on save()
+    error = models.TextField(null=True, editable=False)
 
     def __str__(self):
         return str('{} {} ({} and {})'.format(self.__class__.__name__, self.id, self.state.label, self.status.label))
