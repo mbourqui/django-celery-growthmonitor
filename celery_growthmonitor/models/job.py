@@ -160,18 +160,18 @@ class AJob(models.Model):
         abstract = True
 
     @unique
-    class EStates(EChoice):
+    class EState(EChoice):
         # Creation codes
         CREATED = (0, 'Created')
         # Submission codes
-        SUBMITTED = (100, 'Submitted')
+        SUBMITTED = (10, 'Submitted')
         # Computation codes
-        RUNNING = (200, 'Running')
+        RUNNING = (20, 'Running')
         # Completion codes
-        COMPLETED = (300, 'Completed')
+        COMPLETED = (30, 'Completed')
 
     @unique
-    class EStatuses(EChoice):
+    class EStatus(EChoice):
         ACTIVE = (0, 'Active')
         SUCCESS = (10, 'Succeeded')
         FAILURE = (20, 'Failed')
@@ -216,8 +216,8 @@ class AJob(models.Model):
         max_length=SLUG_MAX_LENGTH,
         populate_from=slug_default,
         unique=True)
-    state = make_echoicefield(EStates, default=EStates.CREATED, editable=False)
-    status = make_echoicefield(EStatuses, default=EStatuses.ACTIVE, editable=False)
+    state = make_echoicefield(EState, default=EState.CREATED, editable=False)
+    status = make_echoicefield(EStatus, default=EStatus.ACTIVE, editable=False)
     started = models.DateTimeField(null=True, editable=False)
     duration = models.DurationField(null=True, editable=False)
     closure = models.DateTimeField(
@@ -283,11 +283,11 @@ class AJob(models.Model):
 
         Parameters
         ----------
-        new_state : EStates
+        new_state : EState
 
         Returns
         -------
-        EStates
+        EState
             The previous state
 
         """
@@ -302,13 +302,13 @@ class AJob(models.Model):
 
         Returns
         -------
-        state : EStates
-        status : EStatuses
+        state : EState
+        status : EStatus
         started : datetime
 
         """
         self.started = timezone.now()
-        self.progress(self.EStates.RUNNING)
+        self.progress(self.EState.RUNNING)
         logger.debug("Starting {} at {}".format(self, self.started))
         return self.state, self.status, self.started
 
@@ -318,16 +318,16 @@ class AJob(models.Model):
 
         Returns
         -------
-        state : EStates
-        status : EStatuses
+        state : EState
+        status : EStatus
         duration : datetime.timedelta
             Duration of the job
 
         """
         self._set_duration()
-        if self.state is not self.EStates.COMPLETED:
-            self.status = self.EStatuses.FAILURE if self.has_failed() else self.EStatuses.SUCCESS
-            self.progress(self.EStates.COMPLETED)  # This will also save the job
+        if self.state is not self.EState.COMPLETED:
+            self.status = self.EStatus.FAILURE if self.has_failed() else self.EStatus.SUCCESS
+            self.progress(self.EState.COMPLETED)  # This will also save the job
             logger.debug(
                 "{} terminated in {}s with status '{}'".format(self, self.duration, self.status.label))
         return self.state, self.status, self.duration

@@ -228,8 +228,8 @@ class TasksTestCase(TestCase):
         self.assertIsInstance(result.result.results, tuple)
         mt = result.result.job_holder
         job = mt.get_job()
-        self.assertIs(job.state, AJob.EStates.COMPLETED)
-        self.assertIs(job.status, AJob.EStatuses.FAILURE)
+        self.assertIs(job.state, AJob.EState.COMPLETED)
+        self.assertIs(job.status, AJob.EStatus.FAILURE)
         self.assertTrue(job.has_failed())
         from json import loads
         error = loads(job.error)
