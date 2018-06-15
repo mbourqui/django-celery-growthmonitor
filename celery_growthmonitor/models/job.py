@@ -334,7 +334,9 @@ class AJob(models.Model):
 
     def failed(self, task, exception):
         """
-        Mark the task as failed and stop it.
+        Mark the job as failed and stop it.
+
+        Note that it may not stop the chain, though.
 
         Parameters
         ----------

@@ -51,10 +51,20 @@ from .celery import app
 def my_task(holder: JobHolder, *args):
     job = holder.get_job()
     # Some processing
+    job.save()
     return holder.pre_serialization()
 ```
 
 ### Helpers
+
+Automatically set the job failed on task failure using custom base Task class
+```Django
+from celery_growthmonitor.models.task import JobFailedOnFailureTask
+
+@app.task(base=JobFailedOnFailureTask, bind=True)
+def my_task(self, holder: JobHolder):
+    pass
+```
 
 #### Admin
 
