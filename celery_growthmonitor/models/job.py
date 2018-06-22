@@ -267,13 +267,16 @@ class AJob(models.Model):
                         self.__class__)) from None
             raise ae
         if created:
+            dirty = False
             if settings.TTL.seconds > 0:
                 # Set timeout
                 self.closure = self.timestamp + settings.TTL
-                super(AJob, self).save()  # Write closure to DB
+                dirty = True  # Write closure to DB
             if getattr(self, 'required_user_files', []):
                 self._move_data_from_tmp_to_upload()
-                super(AJob, self).save()  # Persist file changes
+                dirty = True  # Persist file changes
+            if dirty:
+                super(AJob, self).save()
             # Ensure the destination folder exists (may create some issues else, depending on application usage)
             os.makedirs(get_absolute_path(self, self.upload_to_results), exist_ok=results_exist_ok)
 
