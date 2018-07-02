@@ -8,9 +8,11 @@ from celery_growthmonitor import settings
 from celery_growthmonitor.models import JobHolder
 from celery_growthmonitor.tasks import remove_old_jobs, start, stop
 
+_compat_python_lt_35 = sys.version_info < (3, 5)
+
 
 def pre(job_holder: JobHolder, *tasks):
-    if sys.version_info < (3, 5):
+    if _compat_python_lt_35:
         flow = (start.s(job_holder),)
         if tasks:
             flow += tuple([task for task in tasks])
@@ -22,7 +24,7 @@ def pre(job_holder: JobHolder, *tasks):
 
 
 def post(*tasks):
-    if sys.version_info < (3, 5):
+    if _compat_python_lt_35:
         flow = ()
         if tasks:
             flow += tuple([task for task in tasks])
@@ -54,12 +56,14 @@ def chain(job_holder: JobHolder, *tasks):
     celery.canvas.chain
 
     """
-    try:
-        flow = eval(pre(job_holder, tasks) + post())
-    except SyntaxError:
+    if _compat_python_lt_35:
         # Python < 3.5
         flow = pre(job_holder, tasks)
         flow += post()
+    else:
+        # We have to use `eval()`, because python<3.5 will not compile due to SyntaxError of the unsupported `*task`
+        # notation.
+        flow = eval(pre(job_holder, tasks) + post())
     return celery_chain(*flow)
 
 
