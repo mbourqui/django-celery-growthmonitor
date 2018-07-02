@@ -10,14 +10,14 @@ from celery_growthmonitor.tasks import remove_old_jobs, start, stop
 def pre(job_holder: JobHolder, *tasks):
     flow = (start.s(job_holder),)
     if tasks:
-        flow += (*tasks,)
+        flow += tasks
     return flow
 
 
 def post(*tasks):
     flow = ()
     if tasks:
-        flow += (*tasks,)
+        flow += tasks
     flow += (stop.s(),)
     if settings.TTL.seconds > 0:
         flow += (remove_old_jobs.s(),)
@@ -44,10 +44,10 @@ def chain(job_holder: JobHolder, *tasks):
 
 
 def chain_pre(job_holder: JobHolder, *tasks):
-    flow = pre(job_holder, tasks)
+    flow = pre(job_holder, *tasks)
     return celery_chain(*flow)
 
 
 def chain_post(*tasks):
-    flow = post(tasks)
+    flow = post(*tasks)
     return celery_chain(*flow)
