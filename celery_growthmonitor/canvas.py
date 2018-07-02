@@ -11,18 +11,25 @@ from celery_growthmonitor.tasks import remove_old_jobs, start, stop
 
 def pre(job_holder: JobHolder, *tasks):
     if sys.version_info < (3, 5):
-        flow = "(start.s(job_holder),"
-        if tasks:
-            flow += "*tasks,"
-    else:
         flow = (start.s(job_holder),)
         if tasks:
             flow += tuple([task for task in tasks])
+    else:
+        flow = "(start.s(job_holder),"
+        if tasks:
+            flow += "*tasks,"
     return flow
 
 
 def post(*tasks):
     if sys.version_info < (3, 5):
+        flow = ()
+        if tasks:
+            flow += tuple([task for task in tasks])
+        flow += (stop.s(),)
+        if settings.TTL.seconds > 0:
+            flow += (remove_old_jobs.s(),)
+    else:
         flow = ""
         if tasks:
             flow += "*tasks,"
@@ -30,13 +37,6 @@ def post(*tasks):
         if settings.TTL.seconds > 0:
             flow += ",remove_old_jobs.s()"
         flow += ")"
-    else:
-        flow = ()
-        if tasks:
-            flow += tuple([task for task in tasks])
-        flow += (stop.s(),)
-        if settings.TTL.seconds > 0:
-            flow += (remove_old_jobs.s(),)
     return flow
 
 
@@ -68,7 +68,7 @@ def chain_pre(job_holder: JobHolder, *tasks):
         flow = eval(pre(job_holder, tasks))
     except SyntaxError:
         # Python < 3.5
-        flow = pre(job_holder,  tasks)
+        flow = pre(job_holder, tasks)
     return celery_chain(*flow)
 
 
