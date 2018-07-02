@@ -2,6 +2,7 @@ import importlib
 from abc import ABCMeta
 
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 
 crispy_forms = importlib.util.find_spec('crispy_forms')
 if crispy_forms:
@@ -40,5 +41,5 @@ class ACrispyJobSubmissionForm(forms.Form):
                 self.helper.add_input(Hidden(settings.HONEYPOT_FIELD_NAME, settings.HONEYPOT_VALUE))
             self.helper.layout = Layout(
                 # Job identifier could be asked here
-                Submit('submit', 'Submit', css_class="btn-secondary btn-lg float-right", ),
+                Submit('submit', _('Submit'), css_class="btn-submit", ),
             )
