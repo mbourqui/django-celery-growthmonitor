@@ -56,30 +56,24 @@ def chain(job_holder: JobHolder, *tasks):
     celery.canvas.chain
 
     """
-    if _compat_python_lt_35:
-        # Python < 3.5
-        flow = pre(job_holder, tasks)
-        flow += post()
-    else:
+
+    flow = pre(job_holder, tasks) + post()
+    if not _compat_python_lt_35:
         # We have to use `eval()`, because python<3.5 will not compile due to SyntaxError of the unsupported `*task`
         # notation.
-        flow = eval(pre(job_holder, tasks) + post())
+        flow = eval(flow)
     return celery_chain(*flow)
 
 
 def chain_pre(job_holder: JobHolder, *tasks):
-    try:
-        flow = eval(pre(job_holder, tasks))
-    except SyntaxError:
-        # Python < 3.5
-        flow = pre(job_holder, tasks)
+    flow = pre(job_holder, tasks)
+    if not _compat_python_lt_35:
+        flow = eval(flow)
     return celery_chain(*flow)
 
 
 def chain_post(*tasks):
-    try:
-        flow = eval(post(tasks))
-    except SyntaxError:
-        # Python < 3.5
-        flow = post(tasks)
+    flow = post(tasks)
+    if not _compat_python_lt_35:
+        flow = eval(flow)
     return celery_chain(*flow)
