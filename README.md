@@ -21,9 +21,9 @@ A Django helper to monitor jobs running Celery tasks
 ## Requirements
 
 * [Python][] >= 3.5
-* [Django][] >= 1.8
+* [Django][] >= 1.11
 * [Celery][] >= 4.0.2
-* [echoices][] >= 2.5.0
+* [echoices][] >= 2.6.0
 * [autoslugged][] >= 2.0.0
 
 
