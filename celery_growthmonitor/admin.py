@@ -10,12 +10,32 @@ class AJobAdmin(admin.ModelAdmin):
     __metaclass__ = ABCMeta
 
     # Change list specifications
-    list_display = ('__str__', 'user', 'identifier', 'slug', 'timestamp', 'state', 'status', 'duration', 'closure')
-    list_filter = ('user', 'timestamp', 'state', 'status', 'closure')
-    search_fields = ('user', 'identifier', 'slug')
+    list_display = (
+        "__str__",
+        "user",
+        "identifier",
+        "slug",
+        "timestamp",
+        "state",
+        "status",
+        "duration",
+        "closure",
+    )
+    list_filter = ("user", "timestamp", "state", "status", "closure")
+    search_fields = ("user", "identifier", "slug")
     # Instance specifications
-    fields = ('user', 'timestamp', 'identifier', 'slug', 'state', 'status', 'duration', 'closure', 'error')
-    readonly_fields = ('user', 'timestamp', 'state', 'status', 'duration', 'error')
+    fields = (
+        "user",
+        "timestamp",
+        "identifier",
+        "slug",
+        "state",
+        "status",
+        "duration",
+        "closure",
+        "error",
+    )
+    readonly_fields = ("user", "timestamp", "state", "status", "duration", "error")
 
     def has_add_permission(self, request):
         return False
@@ -24,8 +44,8 @@ class AJobAdmin(admin.ModelAdmin):
 class AFieldsForDataFileInlineModelAdmin(admin.options.InlineModelAdmin):
     __metaclass__ = ABCMeta
 
-    fields = ('data',)
-    readonly_fields = ('data',)
+    fields = ("data",)
+    readonly_fields = ("data",)
     can_delete = False
 
     def has_add_permission(self, request):
@@ -37,11 +57,11 @@ class HasJobAdminMixin:
     job_model = None
     job_label = _("Job")
 
-    list_display = ('render_job',)
+    list_display = ("render_job",)
     list_filter = ()
-    search_fields = ('render_job',)
-    fields = ('job_link',)
-    readonly_fields = ('job_link',)
+    search_fields = ("render_job",)
+    fields = ("job_link",)
+    readonly_fields = ("job_link",)
 
     def render_job(self, obj):
         return str(obj.job)
@@ -49,7 +69,12 @@ class HasJobAdminMixin:
     render_job.short_description = job_label
 
     def job_link(self, obj):
-        url = reverse('admin:{}_{}_change'.format(self.app_label, self.job_model.__name__.lower()), args=(obj.job.pk,))
+        url = reverse(
+            "admin:{}_{}_change".format(
+                self.app_label, self.job_model.__name__.lower()
+            ),
+            args=(obj.job.pk,),
+        )
         return format_html('<a href="%s">%s</a>' % (url, self.render_job(obj)))
 
     job_link.short_description = job_label

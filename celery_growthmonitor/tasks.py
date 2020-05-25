@@ -6,7 +6,7 @@ from celery import shared_task
 
 from .models.jobholder import JobHolder
 
-ReturnTuple = namedtuple('ReturnTuple', ['job_holder', 'results'])
+ReturnTuple = namedtuple("ReturnTuple", ["job_holder", "results"])
 
 
 def _compat_return(job_holder: JobHolder, *args):
@@ -30,17 +30,22 @@ def extract_job_holder(previous_task_results, *args):
 
     """
     if isinstance(previous_task_results, ReturnTuple):
-        return _compat_return(previous_task_results.job_holder.post_serialization(),
-                              *(previous_task_results.results + args))
+        return _compat_return(
+            previous_task_results.job_holder.post_serialization(),
+            *(previous_task_results.results + args)
+        )
     elif isinstance(previous_task_results, tuple):
-        return _compat_return(previous_task_results[0].post_serialization()
-                              , *(previous_task_results[1:] + args))
+        return _compat_return(
+            previous_task_results[0].post_serialization(),
+            *(previous_task_results[1:] + args)
+        )
     return _compat_return(previous_task_results.post_serialization(), *args)
 
 
 # ==================================================
 #   MONITORING TASKS
 # ==================================================
+
 
 @shared_task
 def start(job_holder):
@@ -86,6 +91,7 @@ def stop(job_holder, *args):
 #   MAINTENANCE TASKS
 # ==================================================
 
+
 @shared_task
 def remove_old_jobs(job_holder, *args):
     """
@@ -101,6 +107,7 @@ def remove_old_jobs(job_holder, *args):
     """
     job_holder, args = extract_job_holder(job_holder, *args)
     from django.utils.timezone import now
+
     candidates = job_holder.job.__class__.objects.filter(closure__lt=now())
     for candidate in candidates:
         candidate.delete()

@@ -4,6 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/django_celery_growthmonitor.svg?style=flat-square)](https://pypi.org/project/django-celery-growthmonitor)
 [![Build Status](https://travis-ci.org/mbourqui/django-celery-growthmonitor.svg?branch=master)](https://travis-ci.org/mbourqui/django-celery-growthmonitor)
 [![Coverage Status](https://coveralls.io/repos/github/mbourqui/django-celery-growthmonitor/badge.svg?branch=master)](https://coveralls.io/github/mbourqui/django-celery-growthmonitor?branch=master)
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 
 # Django-Celery-GrowthMonitor

@@ -11,7 +11,9 @@ class JobFailedOnFailureTask(Task):
     """
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        super(JobFailedOnFailureTask, self).on_failure(exc, task_id, args, kwargs, einfo)
+        super(JobFailedOnFailureTask, self).on_failure(
+            exc, task_id, args, kwargs, einfo
+        )
         holder = args[0]
         job = holder.get_job()
         job.failed(self, exc)
