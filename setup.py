@@ -40,7 +40,7 @@ setup(
         "Django>=1.11.29",
         "django-echoices>=2.6.0",
         "celery>=4.0.2",
-        "django-autoslugged>=2.0.0.dev0",
+        "django-autoslug>=1.9.7",
     ],
     keywords="django utility celery celery-tasks",
     classifiers=[

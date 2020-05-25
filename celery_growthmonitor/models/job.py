@@ -158,7 +158,7 @@ class AJob(models.Model):
     http://stackoverflow.com/questions/16655097/django-abstract-models-versus-regular-inheritance#16838663
     """
 
-    from autoslugged import AutoSlugField
+    from autoslug import AutoSlugField
     from echoices.enums import EChoice
     from echoices.fields import make_echoicefield
 

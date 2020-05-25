@@ -24,7 +24,7 @@ A Django helper to monitor jobs running Celery tasks
 * [Django][] >= 1.11
 * [Celery][] >= 4.0.2
 * [echoices][] >= 2.6.0
-* [autoslugged][] >= 2.0.0
+* [autoslug][] >= 1.9.7
 
 
 ## Installation
@@ -33,7 +33,7 @@ A Django helper to monitor jobs running Celery tasks
 1. Run `pip install django-celery-growthmonitor`
 
 ### Using the source code
-1. Make sure [`pandoc`](http://pandoc.org/index.html) is installed
+1. Make sure [pandoc][] is installed
 1. Run `./pypi_packager.sh`
 1. Run `pip install dist/django_celery_growthmonitor-x.y.z-[...].wheel`, where `x.y.z` must be replaced by the actual
    version number and `[...]` depends on your packaging configuration
@@ -87,4 +87,5 @@ class MyJobAdmin(AJobAdmin):
   [django]:     https://www.djangoproject.com/      "Django"
   [celery]:     http://www.celeryproject.org/       "Celery"
   [echoices]:   https://github.com/mbourqui/django-echoices         "django-echoices"
-  [autoslugged]:    https://github.com/mbourqui/django-autoslugged  "django-autoslugged"
+  [autoslug]:   https://github.com/justinmayer/django-autoslug      "django-autoslug"
+  [pandoc]:     http://pandoc.org/index.html        "pandoc"
