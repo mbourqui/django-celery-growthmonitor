@@ -20,19 +20,19 @@
 #                converts a README.md to README.rst for nice rendering on PyPI.
 #author         :https://github.com/mbourqui
 #licence        :GNU GPL-3.0
-#date           :20200525
 #usage          :bash pypi_packager.sh
 #requires       :pandoc
 #==============================================================================
 
 PROGRAM_NAME=$(basename "$0")
-VERSION=1.3.0
+VERSION=1.3.1
+DATE=2020.08.27
 PROJECT_NAME=$(basename $(pwd))
 WHEEL_PKG_NAME=${PROJECT_NAME//-/_}  # Replace all - with _
-PACKAGE_NAME=${PROJECT_NAME#"django-"}
+PACKAGE_NAME=${WHEEL_PKG_NAME#"django_"}  # Strip 'django_' prefix
 
 copyright() {
-echo "$PROGRAM_NAME  Copyright (C) 2017-2020  Marc Bourqui $PACKAGE_NAME"
+echo "$PROGRAM_NAME  Copyright (C) 2017-2020  Marc Bourqui, $PROJECT_NAME"
 }
 
 usage() {
@@ -78,7 +78,7 @@ while true; do
             exit
         ;;
         -v|--version)
-            echo $VERSION
+            echo "$VERSION ($DATE)"
             exit
         ;;
         --)
