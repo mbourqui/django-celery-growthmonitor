@@ -1,9 +1,11 @@
-[![Python](https://img.shields.io/badge/Python-3.5,3.6-blue.svg?style=flat-square)](/)
-[![Django](https://img.shields.io/badge/Django-1.8,1.9,1.10,1.11-blue.svg?style=flat-square)](/)
+[![Python](https://img.shields.io/badge/Python-3.5,3.6,3.7,3.8-blue.svg?style=flat-square)](/)
+[![Django](https://img.shields.io/badge/Django-1.11,2.1,2.2,3.0-blue.svg?style=flat-square)](/)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/django_celery_growthmonitor.svg?style=flat-square)](https://pypi.org/project/django-celery-growthmonitor)
 [![Build Status](https://travis-ci.org/mbourqui/django-celery-growthmonitor.svg?branch=master)](https://travis-ci.org/mbourqui/django-celery-growthmonitor)
 [![Coverage Status](https://coveralls.io/repos/github/mbourqui/django-celery-growthmonitor/badge.svg?branch=master)](https://coveralls.io/github/mbourqui/django-celery-growthmonitor?branch=master)
+[![Downloads](https://pepy.tech/badge/django-celery-growthmonitor)](https://pepy.tech/project/django-celery-growthmonitor)
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 
 # Django-Celery-GrowthMonitor
@@ -19,10 +21,10 @@ A Django helper to monitor jobs running Celery tasks
 ## Requirements
 
 * [Python][] >= 3.5
-* [Django][] >= 1.8
+* [Django][] >= 1.11
 * [Celery][] >= 4.0.2
-* [echoices][] >= 2.5.0
-* [autoslugged][] >= 2.0.0
+* [echoices][] >= 2.6.0
+* [autoslug][] >= 1.9.7
 
 
 ## Installation
@@ -31,7 +33,7 @@ A Django helper to monitor jobs running Celery tasks
 1. Run `pip install django-celery-growthmonitor`
 
 ### Using the source code
-1. Make sure [`pandoc`](http://pandoc.org/index.html) is installed
+1. Make sure [pandoc][] is installed
 1. Run `./pypi_packager.sh`
 1. Run `pip install dist/django_celery_growthmonitor-x.y.z-[...].wheel`, where `x.y.z` must be replaced by the actual
    version number and `[...]` depends on your packaging configuration
@@ -85,4 +87,5 @@ class MyJobAdmin(AJobAdmin):
   [django]:     https://www.djangoproject.com/      "Django"
   [celery]:     http://www.celeryproject.org/       "Celery"
   [echoices]:   https://github.com/mbourqui/django-echoices         "django-echoices"
-  [autoslugged]:    https://github.com/mbourqui/django-autoslugged  "django-autoslugged"
+  [autoslug]:   https://github.com/justinmayer/django-autoslug      "django-autoslug"
+  [pandoc]:     http://pandoc.org/index.html        "pandoc"

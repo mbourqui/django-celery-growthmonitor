@@ -15,12 +15,13 @@ class TestJobTwo(AJob):
 
 
 class MyRootStrTestJob(AJob):
-    root_job = 'my_root_str'
+    root_job = "my_root_str"
 
 
 def my_job_root(instance):
     import os
-    return os.path.join('my_root_func', str(instance.pk))
+
+    return os.path.join("my_root_func", str(instance.pk))
 
 
 class MyRootFuncTestJob(AJob):
@@ -28,12 +29,15 @@ class MyRootFuncTestJob(AJob):
 
 
 class MyResultsStrTestJob(AJob):
-    upload_to_results = 'my_results_str'
+    upload_to_results = "my_results_str"
 
 
 def my_job_results(instance, filename):
     import os
-    return os.path.join(job_root(instance), 'my_results_func', str(instance.pk), filename)
+
+    return os.path.join(
+        job_root(instance), "my_results_func", str(instance.pk), filename
+    )
 
 
 class MyResultsFuncTestJob(AJob):
@@ -53,13 +57,17 @@ class ACompatDataFile(ADataFile):
     class Meta:
         abstract = True
 
-    if StrictVersion('1.10.0') <= StrictVersion(django_version()):
+    if StrictVersion("1.10.0") <= StrictVersion(django_version()):
         data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
 class TestFile(ACompatDataFile):
     job = models.ForeignKey(TestJob, on_delete=models.CASCADE)
-    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+    if (
+        StrictVersion("1.9.0")
+        <= StrictVersion(django_version())
+        < StrictVersion("1.10.0")
+    ):
         data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
@@ -71,7 +79,8 @@ class TestFile(ACompatDataFile):
 
 def my_job_data(instance, filename):
     import os
-    return os.path.join(job_root(instance.job), 'my_data_func', filename)
+
+    return os.path.join(job_root(instance.job), "my_data_func", filename)
 
 
 class MyDataFuncTestFile(ACompatDataFile):
@@ -83,13 +92,21 @@ class MyDataFuncTestFile(ACompatDataFile):
 class JobDataFuncTestFile(ACompatDataFile):
     upload_to_data = job_data
     job = models.ForeignKey(TestJobTwo, on_delete=models.CASCADE)
-    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+    if (
+        StrictVersion("1.9.0")
+        <= StrictVersion(django_version())
+        < StrictVersion("1.10.0")
+    ):
         data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
 class MyRootFuncTestFile(ACompatDataFile):
     job = models.ForeignKey(MyRootFuncTestJob, on_delete=models.CASCADE)
-    if StrictVersion('1.9.0') <= StrictVersion(django_version()) < StrictVersion('1.10.0'):
+    if (
+        StrictVersion("1.9.0")
+        <= StrictVersion(django_version())
+        < StrictVersion("1.10.0")
+    ):
         data = models.FileField(upload_to=ADataFile.upload_to_data, max_length=256)
 
 
@@ -103,4 +120,4 @@ class TestJobWithRequiredFile(AJob):
     sample = models.FileField(upload_to=job_data, max_length=256)
     other = models.FileField(upload_to=job_data, max_length=256)
 
-    required_user_files = ['sample', other]
+    required_user_files = ["sample", other]

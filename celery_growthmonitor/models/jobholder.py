@@ -37,16 +37,23 @@ class JobHolder:
                 self._job_pk = self._job.pk
             except self._job.DoesNotExist:
                 raise self._job.DoesNotExist(
-                    "{} has not yet been saved, but its primary key is required".format(self.job)) from None
+                    "{} has not yet been saved, but its primary key is required".format(
+                        self.job
+                    )
+                ) from None
         self._job = None
         return self
 
     def post_serialization(self):
         from django.apps import apps
+
         job_class = apps.get_model(self._job_app_label, self._job_cls)
         if self._job_pk is None:
-            raise self._job.DoesNotExist("{} may not yet been saved, but its primary key is required. "
-                                         "Did you forgot to call the {} hook before running tasks?".
-                                         format(self.job, self.pre_serialization.__name__))
+            raise self._job.DoesNotExist(
+                "{} may not yet been saved, but its primary key is required. "
+                "Did you forgot to call the {} hook before running tasks?".format(
+                    self.job, self.pre_serialization.__name__
+                )
+            )
         self._job = job_class.objects.get(pk=self._job_pk)
         return self
