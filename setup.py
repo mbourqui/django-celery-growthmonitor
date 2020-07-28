@@ -6,7 +6,7 @@ from codecs import open
 
 from setuptools import find_packages, setup
 
-from celery_growthmonitor import __version__
+from celery_growthmonitor import __version__, __status__
 
 REPO_URL = "https://github.com/mbourqui/django-celery-growthmonitor/"
 
@@ -44,7 +44,7 @@ setup(
     ],
     keywords="django utility celery celery-tasks",
     classifiers=[
-        "Development Status :: 5 Production/Stable",
+        "Development Status :: " + __status__,
         "Environment :: Web Environment",
         "Framework :: Django",
         "Framework :: Django :: 1.11",
