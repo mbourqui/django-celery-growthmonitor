@@ -42,7 +42,7 @@ setup(
         "celery>=4.0.2",
         "django-autoslug>=1.9.4",
     ],
-    keywords="django utility celery celery-tasks",
+    keywords="django utility celery celery-tasks monitoring",
     classifiers=[
         "Development Status :: " + __status__,
         "Environment :: Web Environment",
