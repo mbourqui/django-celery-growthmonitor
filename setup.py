@@ -37,12 +37,12 @@ setup(
     include_package_data=True,
     package_data={"": ["*.po", "*.mo"],},
     install_requires=[
-        "Django>=1.11.29",
+        "Django>=1.11",
         "django-echoices>=2.6.0",
         "celery>=4.0.2",
-        "django-autoslug>=1.9.7",
+        "django-autoslug>=1.9.4",
     ],
-    keywords="django utility celery celery-tasks",
+    keywords="django utility celery celery-tasks monitoring",
     classifiers=[
         "Development Status :: " + __status__,
         "Environment :: Web Environment",
