@@ -16,6 +16,7 @@ A Django helper to monitor jobs running Celery tasks
 ## Features
 
 * Utilities to track progress of Celery tasks via in-database jobs
+* Designed for jobs with user-uploaded files
 
 
 ## Requirements
@@ -52,7 +53,11 @@ from .celery import app
 @app.task
 def my_task(holder: JobHolder, *args):
     job = holder.get_job()
+    if job.has_failed():
+        # Just skip the whole if the previous task failed
+        return holder.pre_serialization()
     # Some processing
+    ...
     job.save()
     return holder.pre_serialization()
 ```
