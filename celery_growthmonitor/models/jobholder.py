@@ -15,7 +15,7 @@ class JobHolder:
     """
 
     def __init__(self, job: AJob):
-        self._job = job
+        self._job = job  # Getting removed during serialization, after loaded after serialization
         self._job_pk = self._job.pk
         self._job_app_label = self._job._meta.app_label
         self._job_cls = self._job.__class__.__name__

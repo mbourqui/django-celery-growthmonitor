@@ -12,7 +12,6 @@ class AJobAdmin(admin.ModelAdmin):
     # Change list specifications
     list_display = (
         "__str__",
-        "user",
         "identifier",
         "slug",
         "timestamp",
@@ -21,11 +20,10 @@ class AJobAdmin(admin.ModelAdmin):
         "duration",
         "closure",
     )
-    list_filter = ("user", "timestamp", "state", "status", "closure")
-    search_fields = ("user", "identifier", "slug")
+    list_filter = ("timestamp", "state", "status", "closure")
+    search_fields = ("identifier", "slug")
     # Instance specifications
     fields = (
-        "user",
         "timestamp",
         "identifier",
         "slug",
@@ -35,7 +33,7 @@ class AJobAdmin(admin.ModelAdmin):
         "closure",
         "error",
     )
-    readonly_fields = ("user", "timestamp", "state", "status", "duration", "error")
+    readonly_fields = ("timestamp", "state", "status", "duration", "error")
 
     def has_add_permission(self, request):
         return False
