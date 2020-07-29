@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+### Fixed
+* Admin referencing non existing model field
+
 ## v1.0.0 - 28.07.2020
 ### Added
 * Support of Python 3.7
