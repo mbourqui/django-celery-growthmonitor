@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## v1.0.1 - 29.07.2020
 ### Fixed
 * Admin referencing non existing model field
 

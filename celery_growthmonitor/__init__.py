@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __license__ = "GNU GPLv3 <https://www.gnu.org/licenses/gpl-3.0.html>"
 __author__ = "Marc Bourqui <pypi.kemar@bourqui.org>"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __version_info__ = tuple(
     [
         int(num) if num.isdigit() else num
