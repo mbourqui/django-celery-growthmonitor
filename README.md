@@ -1,5 +1,5 @@
-[![Python](https://img.shields.io/badge/Python-3.5,3.6,3.7,3.8-blue.svg?style=flat-square)](/)
-[![Django](https://img.shields.io/badge/Django-1.11,2.1,2.2,3.0-blue.svg?style=flat-square)](/)
+[![Python](https://img.shields.io/badge/Python-3.5,3.6,3.7,3.8,3.9-blue.svg?style=flat-square)](/)
+[![Django](https://img.shields.io/badge/Django-2.2,3.2-blue.svg?style=flat-square)](/)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/django_celery_growthmonitor.svg?style=flat-square)](https://pypi.org/project/django-celery-growthmonitor)
 [![Build Status](https://travis-ci.org/mbourqui/django-celery-growthmonitor.svg?branch=master)](https://travis-ci.org/mbourqui/django-celery-growthmonitor)
@@ -22,7 +22,7 @@ A Django helper to monitor jobs running Celery tasks
 ## Requirements
 
 * [Python][] >= 3.5
-* [Django][] >= 1.11
+* [Django][] >= 2.2
 * [Celery][] >= 4.0.2
 * [echoices][] >= 2.6.0
 * [autoslug][] >= 1.9.7
